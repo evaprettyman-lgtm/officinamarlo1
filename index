@@ -167,6 +167,14 @@
     </section>
 
     <section class="row">
+      <div class="label">Projects</div>
+      <div class="body">
+        <p class="lead"><a href="ritual-tech/index.html">Ritual Tech: The Score Dispenser</a></p>
+        <p>An experimental machine for composing encounters with the digital traces of your life. Set its six windows, pull the drawer, and take away an event score to perform however you like.</p>
+      </div>
+    </section>
+
+    <section class="row">
       <div class="label">Visit</div>
       <div class="body">
         <address>6121 Havelock Avenue<br>Lincoln, Nebraska</address>
