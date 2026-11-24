@@ -6,401 +6,336 @@
 <title>Ritual Tech — The Score Dispenser</title>
 <meta name="description" content="Ritual Tech is a machine for composing encounters with the digital traces of your life. Set six windows, dispense an event score, and perform it however you like.">
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#ECE6D8">
+<meta name="theme-color" content="#E8E5DD">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=Yellowtail&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
-/* Layout: a tall column vendor (sage-green enamel face between two dark hammertone pillars) on an ivory
-   ground — script logo, six stacked pill windows with push knobs, a brass "To operate" plate with the
-   chance coin slot, and a chrome delivery drawer that dispenses. Scores drop from a slot in the side column. */
+/* Layout: an apparatus, not a cabinet. An off-white slab with one quarter-round corner holds two racks
+   of cartridges (required: solid black; optional: outlined white) beside a black control spine with the
+   dispense dial. Scores issue from a slot under the racks and land as numbered cards. */
 :root {
-  --ground: #ECE6D8;      /* warm ivory ground */
-  --paper: #FBF7EC;       /* card stock */
-  --card: #F6F0E1;
-  --ink: #22211F;         /* charcoal */
-  --ink-soft: #5A5750;
-  --red: #A9412F;         /* muted red */
-  --red-dark: #7F2F22;
-  --cobalt: #21409A;
-  --cobalt-dark: #172E70;
-  --enamel: #3F7559;      /* dark hammertone pillars */
-  --enamel-dark: #2A513D;
-  --face: #B7CBB6;        /* pale sage face */
-  --face-hi: #CBDCC9;
-  --face-lo: #93AD95;
-  --brass: #A6884A;
-  --brass-hi: #CDB173;
-  --metal-hi: #F2F2EE;
-  --metal: #C4C5C0;
-  --metal-lo: #84867F;
-  --lamp: #F2B33D;
+  --ground: #E8E5DD;      /* table the machine stands on */
+  --body: #FAF8F3;        /* machine body, off-white */
+  --card: #FFFDF8;        /* score card stock */
+  --ink: #151515;
+  --ink-2: #4A4843;
+  --line: #BDB9AF;
+  --red: #D23F26;         /* action + required */
+  --red-dark: #A3301C;
+  --cobalt: #2440A6;      /* guidance: examples, interpretation */
 
   --display: "Jost", "Futura", "Century Gothic", "Avenir Next", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --script: "Yellowtail", "Brush Script MT", cursive;
 
-  --r-reel: 340ms;
-  --hammer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --r-reel: 320ms;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0;
-  background: var(--ground);
-  color: var(--ink);
-  font-family: var(--display);
-  font-size: 17px;
-  line-height: 1.45;
-  padding-block: 28px 64px;
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--display); font-size: 17px; line-height: 1.45;
+  padding-block: 22px 64px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.page { max-width: 1180px; margin: 0 auto; }
 
-.page { max-width: 1160px; margin: 0 auto; }
+.topline {
+  display: flex; flex-wrap: wrap; gap: 6px 22px; justify-content: space-between; margin: 0 4px 22px;
+  font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+}
+.topline em { font-style: normal; color: var(--red-dark); }
 
-/* ---------- Header ---------- */
-.top {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 32px; align-items: end;
-  margin: 0 0 32px; padding-bottom: 18px; border-bottom: 2px solid var(--ink);
+/* ---------- Apparatus ---------- */
+.machine {
+  position: relative;
+  display: grid; grid-template-columns: minmax(0, 1fr) 236px;
+  background: var(--body);
+  border: 3px solid var(--ink);
+  border-radius: 150px 22px 22px 22px;
+  box-shadow: 0 2px 0 var(--ink), 0 36px 50px -36px rgba(0,0,0,.45);
 }
-.top h1 { margin: 0; font-size: clamp(30px, 4.4vw, 52px); line-height: 1; font-weight: 800; letter-spacing: -.01em; text-transform: uppercase; }
-.top h1 span { color: var(--red); }
-.top p { margin: 10px 0 0; max-width: 52ch; font-size: 17px; }
-.top .note { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; color: var(--red); text-align: right; max-width: 22ch; margin: 0; }
+.machine::before, .machine::after { /* feet */
+  content: ""; position: absolute; bottom: -19px; width: 46px; height: 18px; background: var(--ink);
+  border-radius: 0 0 23px 23px;
+}
+.machine::before { left: 18%; } .machine::after { right: 120px; }
+.deck { padding: clamp(18px, 2.6vw, 30px); padding-left: clamp(18px, 3vw, 40px); min-width: 0; display: grid; gap: 22px; }
 
-.stage { display: grid; grid-template-columns: minmax(360px, 480px) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
+.plate { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 6px 20px; padding-left: clamp(30px, 5vw, 70px); }
+.mark { width: 74px; height: 74px; }
+.plate h1 { margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 76px); line-height: .82; letter-spacing: -.03em; text-transform: uppercase; }
+.model { margin: 0; text-align: right; font-size: 11px; line-height: 1.5; letter-spacing: .2em; text-transform: uppercase; font-weight: 600; color: var(--ink-2); }
+.model b { display: block; color: var(--ink); font-size: 15px; letter-spacing: .14em; }
 
-/* ---------- Cabinet ---------- */
-.machine { position: relative; padding-top: 14px; }
-.lid {
-  position: absolute; left: 7%; right: 7%; top: 0; height: 26px; border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, var(--metal-hi), var(--metal) 70%, var(--metal-lo));
-  box-shadow: inset 0 1px 0 #fff, 0 1px 0 rgba(0,0,0,.25);
+.rack { display: grid; gap: 10px; }
+.rack-label {
+  margin: 0; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
 }
-.cabinet {
-  position: relative; display: grid; grid-template-columns: 13% minmax(0,1fr) 13%;
-  filter: drop-shadow(0 30px 30px rgba(40,50,40,.28));
-}
-.pillar {
-  position: relative; border-radius: 30px 30px 26px 26px;
-  background:
-    var(--hammer),
-    linear-gradient(90deg, var(--enamel-dark), var(--enamel) 30%, #5B9174 52%, var(--enamel) 72%, var(--enamel-dark));
-  background-blend-mode: soft-light, normal;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.25), inset 0 -4px 6px rgba(0,0,0,.3);
-}
-.pillar::before { /* stepped cap */
-  content: ""; position: absolute; left: 6%; right: 6%; top: -12px; height: 16px; border-radius: 8px 8px 0 0;
-  background: linear-gradient(180deg, var(--metal-hi), var(--metal-lo));
-}
-.face {
-  position: relative; margin: 0 -2px;
-  background:
-    var(--hammer),
-    linear-gradient(90deg, var(--face-lo), var(--face) 10%, var(--face-hi) 50%, var(--face) 90%, var(--face-lo));
-  background-blend-mode: soft-light, normal;
-  padding: 10px clamp(10px, 3.4%, 18px) 0;
-  display: flex; flex-direction: column; gap: 10px;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
-}
-.script {
-  margin: -2px 0 0; text-align: center; font-family: var(--script); font-weight: 400;
-  font-size: clamp(46px, 11vw, 60px); line-height: 1; color: #1E1F1C;
-  text-shadow: 0 1px 0 #f4f4f0, 0 -1px 0 #f4f4f0, 1px 0 0 #f4f4f0, -1px 0 0 #f4f4f0, 0 3px 3px rgba(0,0,0,.35);
-  transform: rotate(-3deg); padding: 4px 0 2px;
-}
+.rack-label::after { content: ""; flex: 1; height: 2px; background: var(--ink); }
+.rack-label span { font-weight: 500; letter-spacing: .08em; text-transform: none; font-size: 13px; color: var(--ink-2); }
+.shape-sq { width: 12px; height: 12px; background: var(--red); flex: none; }
+.shape-ci { width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 50%; flex: none; }
+.carts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 
-/* ---------- Windows ---------- */
-.rows { display: flex; flex-direction: column; gap: 12px; }
-.win { min-width: 0; display: grid; gap: 5px; }
-.win-cap { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; align-items: center; padding-right: 2px; }
-.win-cap-t { min-width: 0; }
-.win-line { display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
-.win-no {
-  background: var(--cobalt); color: var(--paper); font-weight: 700; font-size: 11px;
-  padding: 1px 5px; border-radius: 3px; letter-spacing: .06em; font-variant-numeric: tabular-nums;
+/* ---------- Cartridges ---------- */
+.cart {
+  position: relative; min-width: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: 16px 14px 14px; border-radius: 4px 4px 18px 18px;
+  -webkit-mask: radial-gradient(circle 10px at 50% 0, transparent 97%, #000 100%);
+          mask: radial-gradient(circle 10px at 50% 0, transparent 97%, #000 100%);
 }
-.win-tag { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #3C4A41; white-space: nowrap; }
-.win[data-required="true"] .win-tag { color: var(--red-dark); }
-.win-q { margin: 1px 0 0; font-size: 14px; font-weight: 500; line-height: 1.2; }
-.ctrls { display: flex; gap: 5px; }
-.mini {
-  width: 32px; height: 32px; border-radius: 50%; border: 0; cursor: pointer; padding: 0;
-  background: radial-gradient(circle at 38% 30%, #fff, var(--metal-hi) 30%, var(--metal) 70%, var(--metal-lo));
-  box-shadow: 0 2px 0 #6f716a, 0 2px 3px rgba(0,0,0,.25);
-  display: grid; place-items: center; transition: transform .08s, box-shadow .08s;
-}
-.mini svg { width: 15px; height: 15px; }
-.mini:active { transform: translateY(2px); box-shadow: 0 0 0 #6f716a; }
+.cart.req { background: var(--ink); color: var(--body); }
+.cart.free { background: var(--body); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+.cart.clunk { animation: clunk .22s ease-out; }
+@keyframes clunk { 40% { transform: translateY(3px); } }
+.cart-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.cart-no { font-weight: 800; font-size: 46px; line-height: .8; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.cart.req .cart-no { color: var(--red); }
+.cart.free .cart-no { color: transparent; -webkit-text-stroke: 1.6px var(--ink); }
+.cart-flag { width: 14px; height: 14px; margin-top: 2px; transition: background .2s, transform .2s; }
+.cart.req .cart-flag { border: 2px solid var(--red); }
+.cart.req.filled .cart-flag { background: var(--red); }
+.cart.free .cart-flag { border: 2px solid var(--ink); border-radius: 50%; }
+.cart.free.filled .cart-flag { background: var(--ink); }
+.cart-name { margin: -2px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+.cart-q { margin: 0; font-size: 14px; line-height: 1.3; font-weight: 500; }
+.cart.req .cart-q { color: #D8D4CA; }
+.cart.free .cart-q { color: var(--ink-2); }
 
-.win-row { display: grid; grid-template-columns: minmax(0,1fr) 40px; gap: 10px; align-items: center; }
-.glass {
-  position: relative; display: block; width: 100%; height: 78px; padding: 0; border: 0; cursor: pointer;
-  border-radius: 999px; overflow: hidden; text-align: left;
-  background: radial-gradient(120% 140% at 50% 0%, #4a514b, #1f2320 70%);
-  box-shadow:
-    0 0 0 4px var(--face-hi), 0 0 0 5px var(--face-lo), 0 2px 0 5px rgba(0,0,0,.18),
-    inset 0 6px 12px rgba(0,0,0,.7), inset 0 -2px 4px rgba(255,255,255,.08);
+.aperture {
+  position: relative; display: block; width: 100%; height: 92px; padding: 0; cursor: pointer; text-align: left;
+  border: 0; border-radius: 3px; overflow: hidden; background: var(--card); color: var(--ink);
 }
-.glass::after { /* glare */
-  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4; border-radius: inherit;
-  background: linear-gradient(170deg, rgba(255,255,255,.32) 0 22%, rgba(255,255,255,0) 22.5% 100%);
-  mix-blend-mode: screen;
+.cart.free .aperture { box-shadow: inset 0 0 0 2px var(--ink); }
+.cart.free:not(.filled) .aperture {
+  background-color: var(--body);
+  background-image: radial-gradient(var(--line) 1.3px, transparent 1.6px);
+  background-size: 10px 10px;
 }
-.reel { position: absolute; inset: 9px 14px 9px 12px; overflow: hidden; border-radius: 3px; }
-.ri {
-  position: absolute; inset: 0; padding: 6px 14px 6px 16px;
-  display: flex; flex-direction: column; justify-content: center; gap: 1px;
-  background: var(--paper); border-left: 8px solid var(--band, var(--red));
-  box-shadow: inset 0 -10px 14px -10px rgba(0,0,0,.25);
+.aperture::after { /* index line */
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--red); opacity: 0; transition: opacity .2s;
 }
-.ri.empty {
-  background: none; border: 0; box-shadow: none; align-items: center;
-  color: rgba(236,230,216,.55); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; font-weight: 600;
-}
-.ri-label {
-  font-weight: 600; font-size: clamp(17px, 2.2vw, 20px); line-height: 1.08;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ri-sub { font-size: 12.5px; line-height: 1.25; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ri.in-b { animation: inB var(--r-reel) cubic-bezier(.25,1.45,.45,1) both; }
-.ri.in-a { animation: inA var(--r-reel) cubic-bezier(.25,1.45,.45,1) both; }
-.ri.out-a { animation: outA var(--r-reel) cubic-bezier(.55,0,.8,.4) both; }
-.ri.out-b { animation: outB var(--r-reel) cubic-bezier(.55,0,.8,.4) both; }
-.spinning { --r-reel: 85ms; }
-.spinning .ri { filter: blur(.6px); }
-@keyframes inB { from { transform: translateY(110%); } to { transform: none; } }
-@keyframes inA { from { transform: translateY(-110%); } to { transform: none; } }
-@keyframes outA { to { transform: translateY(-110%); } }
-@keyframes outB { to { transform: translateY(110%); } }
+.aperture:hover::after { opacity: .7; }
+.reel { position: absolute; inset: 0; overflow: hidden; }
+.ri { position: absolute; inset: 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.ri.empty { align-items: flex-start; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.cart.req .ri.empty { color: var(--red-dark); }
+.cart.free .ri.empty { color: var(--ink-2); }
+.cart.free .ri.empty span { background: var(--body); padding: 2px 6px; margin-left: -6px; }
+.ri-label { font-weight: 600; font-size: clamp(18px, 1.9vw, 22px); line-height: 1.08; letter-spacing: -.005em; text-wrap: balance; overflow-wrap: anywhere; }
+.cart[data-key="transformation"] .ri-label { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.ri-sub { font-size: 12.5px; line-height: 1.3; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ri.in-b { animation: inB var(--r-reel) cubic-bezier(.2,1.5,.4,1) both; }
+.ri.in-a { animation: inA var(--r-reel) cubic-bezier(.2,1.5,.4,1) both; }
+.ri.out-a { animation: outA var(--r-reel) cubic-bezier(.6,0,.8,.4) both; }
+.ri.out-b { animation: outB var(--r-reel) cubic-bezier(.6,0,.8,.4) both; }
+.spinning { --r-reel: 80ms; }
+@keyframes inB { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes inA { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes outA { to { transform: translateY(-100%); } }
+@keyframes outB { to { transform: translateY(100%); } }
 
-.push {
-  width: 34px; height: 34px; border-radius: 50%; border: 0; cursor: pointer; padding: 0; justify-self: center;
-  background: radial-gradient(circle at 40% 32%, #6b6e69, #262825 55%, #121311);
-  box-shadow: 0 0 0 3px var(--metal), 0 0 0 4px var(--metal-lo), 0 4px 0 2px rgba(0,0,0,.35);
-  transition: transform .08s, box-shadow .08s;
+.cart-ctrl { display: flex; gap: 6px; align-items: center; margin-top: auto; }
+.key {
+  width: 36px; height: 36px; flex: none; padding: 0; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  background: transparent; border: 2px solid currentColor; transition: transform .08s, background .15s, color .15s;
 }
-.push:hover { background: radial-gradient(circle at 40% 32%, #7b7e79, #2f322e 55%, #151614); }
-.push:active { transform: scale(.92); box-shadow: 0 0 0 3px var(--metal), 0 0 0 4px var(--metal-lo), 0 1px 0 2px rgba(0,0,0,.35); }
+.key svg { width: 16px; height: 16px; }
+.cart.req .key:hover { background: var(--body); color: var(--ink); }
+.cart.free .key:hover { background: var(--ink); color: var(--body); }
+.key:active, .tab:active { transform: translateY(2px); }
+.tab {
+  margin-left: auto; height: 36px; padding: 0 12px 0 14px; cursor: pointer; border-radius: 2px;
+  font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 8px; border: 0;
+}
+.tab::after { content: ""; width: 0; height: 0; border-left: 7px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+.cart.req .tab { background: var(--body); color: var(--ink); }
+.cart.free .tab { background: var(--ink); color: var(--body); }
+.tab:hover { background: var(--red) !important; color: var(--body) !important; }
 
-/* ---------- Brass plate ---------- */
-.plate {
-  margin: 6px 4px 0; padding: 12px 14px 10px; border-radius: 3px;
-  background:
-    var(--hammer),
-    linear-gradient(160deg, #DCC690, var(--brass-hi) 45%, #B89A5A);
-  background-blend-mode: soft-light, normal;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 0 0 1px rgba(0,0,0,.35), 0 2px 3px rgba(0,0,0,.25);
-  color: #33200F;
-  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 14px;
-}
-.plate h2 { grid-column: 1 / -1; margin: 0; text-align: center; color: var(--red-dark); font-size: 13px; letter-spacing: .26em; font-weight: 800; }
-.plate ol { margin: 0; padding: 0; list-style: none; counter-reset: h; display: grid; gap: 2px; font-size: 13px; line-height: 1.3; font-weight: 500; }
-.plate li { counter-increment: h; display: grid; grid-template-columns: 16px 1fr; }
-.plate li::before { content: counter(h) "."; font-weight: 700; color: var(--red-dark); }
-.chance {
-  display: grid; justify-items: center; gap: 4px; border: 0; background: none; cursor: pointer; padding: 2px 4px; color: #33200F;
-  font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 800; border-radius: 4px;
-}
-.chance .coin-slot {
-  width: 64px; height: 26px; border-radius: 3px; display: grid; place-items: center;
-  background: linear-gradient(180deg, var(--metal-hi), var(--metal-lo));
-  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,.4);
-}
-.chance .coin-slot i { width: 40px; height: 6px; border-radius: 3px; background: #1a1917; box-shadow: inset 0 2px 3px #000; }
-.chance small { font-size: 10px; letter-spacing: .06em; text-transform: none; font-weight: 600; max-width: 11ch; text-align: center; line-height: 1.2; }
-.chance:hover .coin-slot { filter: brightness(1.06); }
-.chance.coin .coin-slot i { animation: coin .6s ease; }
-@keyframes coin { 30% { box-shadow: inset 0 2px 3px #000, 0 0 0 3px var(--lamp); } }
-.plate-foot {
-  grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
-  border-top: 1px solid rgba(74,42,23,.35); padding-top: 6px; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700;
-}
-.lamps { display: flex; gap: 10px; }
-.lamp { display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
-.lamp i { width: 10px; height: 10px; border-radius: 50%; background: #5b4526; box-shadow: inset 0 1px 2px #000; transition: background .25s, box-shadow .25s; }
-.lamp.on i { background: var(--lamp); box-shadow: 0 0 8px var(--lamp), inset 0 -1px 2px rgba(0,0,0,.3); }
-.clear-all {
-  background: none; border: 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; padding: 4px 0; cursor: pointer;
-  text-decoration: underline; text-underline-offset: 3px;
-}
-
-/* ---------- Delivery drawer (dispense) ---------- */
-.drawer-bay {
-  margin: 4px -4px 0; padding: 10px 10px 12px; border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, #2a2d29, #3b3f3a);
-  box-shadow: inset 0 4px 8px rgba(0,0,0,.6);
+/* ---------- Spine ---------- */
+.spine {
+  background: var(--ink); color: var(--body); border-radius: 0 18px 18px 0;
+  padding: 30px 22px 26px; display: flex; flex-direction: column; align-items: center; gap: 24px;
 }
 .dispense {
-  position: relative; display: grid; place-items: center; gap: 2px; width: 100%; min-height: 86px; border: 0; cursor: pointer;
-  border-radius: 4px 4px 10px 10px; padding: 12px 10px 20px;
-  background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, var(--metal-hi), var(--metal) 55%, var(--metal-lo));
-  box-shadow: inset 0 1px 0 #fff, inset 0 -3px 0 rgba(0,0,0,.18), 0 3px 0 #555, 0 6px 10px rgba(0,0,0,.4);
-  color: var(--ink); font-weight: 800; font-size: 16px; letter-spacing: .24em; text-transform: uppercase;
-  transition: transform .12s, box-shadow .12s, filter .2s;
+  position: relative; width: 176px; height: 176px; border-radius: 50%; border: 0; cursor: pointer; padding: 0;
+  background: var(--red); color: var(--body); display: grid; place-items: center;
+  transition: transform .12s, background .2s;
 }
-.dispense::after { /* pull tab */
-  content: ""; position: absolute; left: 50%; bottom: 6px; width: 56px; height: 9px; transform: translateX(-50%);
-  border-radius: 2px 2px 5px 5px; background: linear-gradient(180deg, var(--metal-lo), #5d5f59);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+.dial-ring { position: absolute; inset: -9px; transition: transform .6s cubic-bezier(.3,1.4,.5,1); pointer-events: none; }
+.eye {
+  position: absolute; left: 50%; top: 30%; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%;
+  background: var(--body); display: grid; place-items: center;
 }
-.dispense span { font-size: 10.5px; letter-spacing: .22em; font-weight: 700; color: var(--ink-soft); }
-.dispense:not(:disabled):hover { filter: brightness(1.05); }
-.dispense:not(:disabled) span { color: var(--cobalt); }
-.dispense:not(:disabled):active, .dispense.pressed { transform: translateY(7px) scale(1.015); box-shadow: inset 0 1px 0 #fff, 0 1px 0 #555, 0 2px 4px rgba(0,0,0,.4); }
-.dispense:disabled { cursor: not-allowed; color: #6b6d67; }
-.plinth { height: 14px; margin: 0 4%; border-radius: 0 0 6px 6px; background: linear-gradient(180deg, var(--metal-lo), #4d4f4a); }
+.pupil { width: 18px; height: 18px; border-radius: 50%; background: var(--ink); transition: transform .35s cubic-bezier(.3,1.5,.5,1); }
+.dial-text { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-weight: 800; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; line-height: 1.1; }
+.dial-text span { display: block; font-size: 10px; font-weight: 600; letter-spacing: .18em; margin-top: 4px; opacity: .85; }
+.dispense:not(:disabled):hover { background: #E04A30; }
+.dispense:not(:disabled):active, .dispense.pressed { transform: scale(.96); }
+.dispense:disabled { cursor: not-allowed; background: #2A2A29; color: #9C978C; box-shadow: inset 0 0 0 2px var(--red); }
+.dispense:disabled .eye { background: #9C978C; }
+.dispense:disabled .pupil { transform: translateY(6px) scaleY(.35) !important; }
 
-/* ---------- Side column ---------- */
-.side { position: sticky; top: 20px; min-width: 0; }
-.slotbar { height: 14px; border-radius: 7px; background: #121110; box-shadow: inset 0 3px 5px #000, 0 1px 0 rgba(255,255,255,.6); margin: 0 6%; position: relative; z-index: 2; }
-.slot-label { text-align: center; font-size: 11px; letter-spacing: .3em; font-weight: 700; text-transform: uppercase; color: var(--ink-soft); margin: 8px 0 0; }
-.placeholder { margin: 18px 6% 0; border: 2px dashed rgba(34,33,31,.3); padding: 28px 24px; text-align: center; color: var(--ink-soft); font-size: 15px; }
-.placeholder b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 4px; }
+.lamps { display: flex; gap: 12px; }
+.lamp { display: grid; justify-items: center; gap: 4px; font-size: 10px; font-weight: 600; letter-spacing: .12em; color: #A9A49A; font-variant-numeric: tabular-nums; }
+.lamp i { width: 16px; height: 16px; border: 2px solid var(--red); transition: background .2s; }
+.lamp.on i { background: var(--red); }
+.lamp.on { color: var(--body); }
 
-/* ---------- Tray & score card ---------- */
-.tray { margin: -7px 3% 0; overflow: hidden; padding: 0 14px 30px; }
-.tray.empty { height: 0; padding: 0; }
+.chance { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 12px; background: none; border: 0; padding: 4px; cursor: pointer; text-align: left; color: var(--body); width: 100%; }
+.disc {
+  width: 62px; height: 62px; border-radius: 50%; background: var(--body); position: relative;
+  transition: transform .9s cubic-bezier(.2,.9,.3,1);
+}
+.disc::before { content: ""; position: absolute; left: 50%; top: 6px; width: 4px; height: 22px; margin-left: -2px; background: var(--ink); border-radius: 2px; }
+.disc::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--red); }
+.chance b { display: block; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; }
+.chance small { display: block; font-size: 12.5px; color: #B9B4A9; line-height: 1.3; }
+.chance:hover .disc { box-shadow: 0 0 0 3px var(--red); }
+.clear-all { align-self: stretch; background: none; border: 0; border-top: 1px solid #3A3936; padding: 12px 0 0; cursor: pointer; color: #B9B4A9; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; font-weight: 600; text-align: left; }
+.clear-all:hover { color: var(--body); }
+.howto { margin: auto 0 0; padding: 0; list-style: none; counter-reset: h; display: grid; gap: 7px; font-size: 13px; line-height: 1.35; color: #C9C4B9; align-self: stretch; }
+.howto li { counter-increment: h; display: grid; grid-template-columns: 22px 1fr; }
+.howto li::before { content: counter(h, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--red); padding-top: 1px; }
+
+.slot { grid-column: 1; display: grid; justify-items: center; gap: 6px; padding: 0 0 22px; }
+.slot i { display: block; width: min(560px, 80%); height: 12px; border-radius: 6px; background: var(--ink); }
+.slot span { font-size: 10px; letter-spacing: .3em; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
+
+/* ---------- Output ---------- */
+.output { width: min(600px, 100%); margin: 0 auto; }
+.placeholder { margin: 40px auto 0; text-align: center; font-size: 14px; color: var(--ink-2); max-width: 36ch; }
+.tray { margin-top: 26px; overflow: hidden; padding: 14px 16px 30px; }
+.tray.empty { height: 0; padding: 0; margin: 0; }
 .card {
-  position: relative; background: var(--paper);
-  padding: 40px clamp(22px, 5vw, 52px) 30px;
-  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 18px 30px -18px rgba(40,30,10,.45);
-  transform-origin: top center;
-  background-image: linear-gradient(rgba(34,33,31,.035) 1px, transparent 1px);
-  background-size: 100% 31px; background-position: 0 104px;
+  position: relative; background: var(--card); color: var(--ink);
+  padding: clamp(22px, 5vw, 38px) clamp(20px, 5vw, 40px) 24px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.12), 0 24px 40px -26px rgba(0,0,0,.55);
 }
-.card::before { /* perforation */
-  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px;
-  background: radial-gradient(circle at 6px 0, var(--ground) 4px, transparent 4.5px) 0 0 / 12px 8px repeat-x;
+.card::before { /* crop marks: a printed multiple */
+  content: ""; position: absolute; inset: -13px; pointer-events: none;
+  --m: linear-gradient(var(--ink), var(--ink));
+  background:
+    var(--m) left 0 top 13px / 8px 1px no-repeat, var(--m) left 13px top 0 / 1px 8px no-repeat,
+    var(--m) right 0 top 13px / 8px 1px no-repeat, var(--m) right 13px top 0 / 1px 8px no-repeat,
+    var(--m) left 0 bottom 13px / 8px 1px no-repeat, var(--m) left 13px bottom 0 / 1px 8px no-repeat,
+    var(--m) right 0 bottom 13px / 8px 1px no-repeat, var(--m) right 13px bottom 0 / 1px 8px no-repeat;
 }
-.card.feeding { animation: feed 1.7s steps(14, end) both; }
-@keyframes feed { from { transform: translateY(-104%); } to { transform: none; } }
-.card-head {
-  display: flex; justify-content: space-between; gap: 12px; align-items: center;
-  font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700;
-  padding-bottom: 14px; border-bottom: 2px solid var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.card-head .seal { width: 26px; height: 26px; flex: none; }
-.score-title {
-  margin: 22px 0 18px; font-weight: 700; font-size: clamp(28px, 4.6vw, 40px); line-height: 1.04; letter-spacing: -.01em;
-  text-wrap: balance;
-}
-.score-body { font-family: var(--mono); font-size: clamp(15px, 1.9vw, 17.5px); line-height: 1.55; display: grid; gap: 14px; }
+.card.feeding { animation: feed 1.6s steps(12, end) both; }
+@keyframes feed { from { transform: translateY(-106%); } to { transform: none; } }
+.card-top { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 16px; align-items: end; padding-bottom: 16px; border-bottom: 3px solid var(--ink); }
+.card-no { font-weight: 800; font-size: clamp(52px, 10vw, 78px); line-height: .78; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.card-no small { display: block; font-size: 12px; letter-spacing: .2em; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+.card-meta { font-size: 10.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; line-height: 1.55; color: var(--ink-2); }
+.card-meta b { display: block; color: var(--ink); letter-spacing: .2em; }
+.emblem { width: 84px; height: 56px; display: block; }
+.score-title { margin: 22px 0 16px; font-weight: 700; font-size: clamp(28px, 4.6vw, 38px); line-height: 1.02; letter-spacing: -.015em; text-wrap: balance; }
+.score-body { font-family: var(--mono); font-size: clamp(15px, 1.9vw, 17px); line-height: 1.55; display: grid; gap: 12px; }
 .score-body p { margin: 0; }
 .score-body p.q { font-style: italic; }
-.card-foot {
-  margin-top: 26px; padding-top: 12px; border-top: 1px solid rgba(34,33,31,.35);
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px;
-  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
-}
-.card-foot .vars { max-width: 44ch; }
-.card.editing .score-title, .card.editing .score-body {
-  outline: 2px dashed var(--cobalt); outline-offset: 6px; border-radius: 2px; cursor: text;
-}
+.card-vars { margin: 24px 0 0; padding: 12px 0 0; border-top: 1px solid var(--ink); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.card-vars div { display: grid; grid-template-columns: 24px minmax(0,1fr); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; }
+.card-vars dt { font-family: var(--mono); color: var(--red-dark); letter-spacing: 0; }
+.card-vars dd { margin: 0; }
+.card-foot { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
+.card.editing .score-title, .card.editing .score-body { outline: 2px dashed var(--cobalt); outline-offset: 6px; cursor: text; }
 .card.editing .score-body p.q { font-style: normal; }
-.stale {
-  margin: 14px 0 0; font-size: 14px; color: var(--red-dark); font-weight: 500;
-}
+.stale { margin: 14px 0 0; font-size: 14px; color: var(--red-dark); font-weight: 500; }
 
-.tools {
-  width: 100%; max-width: 640px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-}
+.tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .tool {
-  border: 2px solid var(--ink); background: transparent; padding: 8px 14px; border-radius: 999px; cursor: pointer;
-  font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  border: 2px solid var(--ink); background: transparent; padding: 8px 13px; border-radius: 2px; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
 }
-.tool:hover { background: var(--ink); color: var(--paper); }
-.tool.on { background: var(--cobalt); border-color: var(--cobalt); color: var(--paper); }
+.tool:hover { background: var(--ink); color: var(--body); }
+.tool.on { background: var(--cobalt); border-color: var(--cobalt); color: var(--body); }
 .tool-opt { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 4px; }
 .tool-opt input { width: 16px; height: 16px; accent-color: var(--cobalt); }
-.toast { width: 100%; margin: 10px auto 0; text-align: center; font-size: 14px; min-height: 1.4em; color: var(--cobalt-dark); font-weight: 500; }
-.share-note { width: 100%; margin: 2px auto 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
+.toast { margin: 10px 0 0; text-align: center; font-size: 14px; min-height: 1.4em; color: var(--cobalt); font-weight: 500; }
+.share-note { margin: 2px 0 0; text-align: center; font-size: 13px; color: var(--ink-2); }
 
-.interp {
-  width: 100%; max-width: 640px; margin: 28px auto 0; background: var(--cobalt); color: var(--paper);
-  padding: clamp(20px, 4vw, 34px); border-radius: 2px; position: relative;
-}
-.interp h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
-.interp .sub { margin: 0 0 18px; font-size: 14px; color: #C5CEEB; }
-.interp-body { display: grid; gap: 12px; max-width: 60ch; }
+.interp { margin: 28px 0 0; background: var(--cobalt); color: var(--body); padding: clamp(20px, 4vw, 32px); position: relative; }
+.interp::before { content: ""; position: absolute; right: 22px; top: -14px; width: 28px; height: 28px; border-radius: 50%; background: var(--body); box-shadow: inset 0 0 0 3px var(--cobalt); }
+.interp h2 { margin: 0 0 4px; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; }
+.interp .sub { margin: 0 0 16px; font-size: 14px; color: #C9D1F0; }
+.interp-body { display: grid; gap: 12px; }
 .interp-body p { margin: 0; font-size: 16.5px; line-height: 1.55; }
-.interp-body p:last-child { color: #DCE2F5; font-style: italic; }
-.interp .tool { border-color: var(--paper); color: var(--paper); margin-top: 20px; }
-.interp .tool:hover { background: var(--paper); color: var(--cobalt); }
+.interp-body p:last-child { color: #DCE2F7; font-style: italic; }
+.interp .tool { border-color: var(--body); color: var(--body); margin-top: 18px; }
+.interp .tool:hover { background: var(--body); color: var(--cobalt); }
 
 /* ---------- Colophon ---------- */
-.colophon {
-  margin-top: 64px; border-top: 2px solid var(--ink); padding-top: 22px;
-  display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px;
-}
-.colophon h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; }
+.colophon { margin-top: 72px; border-top: 3px solid var(--ink); padding-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px; }
+.colophon h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
 .colophon p { margin: 0 0 .8em; font-size: 15.5px; max-width: 38ch; }
-.colophon .motto { grid-column: 1 / -1; font-size: clamp(22px, 3vw, 32px); font-weight: 600; line-height: 1.2; margin: 6px 0 0; max-width: 28ch; text-wrap: balance; }
+.colophon .motto { grid-column: 1 / -1; font-size: clamp(24px, 3.4vw, 38px); font-weight: 700; line-height: 1.1; letter-spacing: -.01em; margin: 10px 0 0; max-width: 24ch; text-wrap: balance; }
 .colophon .motto span { color: var(--red); }
 
-/* ---------- Menu dialog ---------- */
+/* ---------- Menu: a cartridge drawer pulled from the apparatus ---------- */
 dialog.menu {
-  border: 0; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: min(88vh, 900px);
-  background: var(--paper); color: var(--ink); border-radius: 6px;
-  box-shadow: 0 30px 80px -20px rgba(0,0,0,.6);
+  border: 0; padding: 0; margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(600px, 100vw); max-width: 100vw;
+  background: var(--body); color: var(--ink); border-left: 3px solid var(--ink); border-radius: 0;
 }
-dialog.menu::backdrop { background: rgba(34,33,31,.55); }
-dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: flex; flex-direction: column; }
-@keyframes drawer { from { transform: translateY(24px); opacity: 0; } }
-.m-head { padding: 20px 24px 16px; border-bottom: 2px solid var(--ink); position: relative; }
-.m-eyebrow { display: flex; gap: 10px; align-items: center; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
-.m-head h2 { margin: 10px 0 4px; font-size: clamp(26px, 4vw, 34px); line-height: 1.05; font-weight: 700; padding-right: 40px; }
-.m-hint { margin: 0; font-size: 14px; color: var(--ink-soft); }
+dialog.menu[open] { display: flex; flex-direction: column; animation: drawer .38s cubic-bezier(.2,1,.3,1); }
+dialog.menu::backdrop { background: rgba(21,21,21,.38); }
+@keyframes drawer { from { transform: translateX(100%); } }
+.m-head { position: relative; padding: 22px 26px 18px; padding-top: calc(22px + env(safe-area-inset-top, 0px)); background: var(--ink); color: var(--body); }
+dialog.menu.is-free .m-head { background: var(--body); color: var(--ink); border-bottom: 3px solid var(--ink); }
+.m-eyebrow { display: flex; align-items: flex-end; gap: 14px; }
+.m-no { font-weight: 800; font-size: 64px; line-height: .78; letter-spacing: -.04em; color: var(--red); }
+dialog.menu.is-free .m-no { color: transparent; -webkit-text-stroke: 1.8px var(--ink); }
+.m-name { font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; display: grid; gap: 2px; }
+.m-req { font-weight: 600; letter-spacing: .18em; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
+.m-req::before { content: ""; width: 10px; height: 10px; background: var(--red); }
+dialog.menu.is-free .m-req::before { background: none; border: 2px solid var(--ink); border-radius: 50%; }
+.m-head h2 { margin: 16px 0 4px; font-size: clamp(26px, 4vw, 34px); line-height: 1.04; font-weight: 700; padding-right: 44px; letter-spacing: -.01em; }
+.m-hint { margin: 0; font-size: 14px; opacity: .78; max-width: 52ch; }
 .m-close {
-  position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ink);
-  background: none; cursor: pointer; font-size: 20px; line-height: 1;
+  position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: 18px; width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid currentColor; background: none; cursor: pointer; font-size: 22px; line-height: 1;
 }
-.m-close:hover { background: var(--ink); color: var(--paper); }
-.m-list { list-style: none; margin: 0; padding: 8px 12px; overflow-y: auto; flex: 1; }
-.opt { border-bottom: 1px solid rgba(34,33,31,.15); padding: 12px 10px 12px; display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: 14px; }
+.m-close:hover { background: var(--red); border-color: var(--red); color: var(--body); }
+.m-list { list-style: none; margin: 0; padding: 6px 0; overflow-y: auto; flex: 1; }
+.opt { padding: 14px 26px; display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: 16px; border-bottom: 1px solid var(--line); }
 .opt:last-child { border-bottom: 0; }
 .opt-pick {
-  grid-row: span 3; width: 34px; height: 34px; margin-top: 2px; border-radius: 50%; border: 2px solid var(--ink);
-  background: var(--paper); cursor: pointer; font-family: var(--mono); font-size: 13px; font-weight: 500;
-  display: grid; place-items: center;
+  grid-row: span 3; width: 32px; height: 32px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--ink);
+  background: transparent; cursor: pointer; font-family: var(--mono); font-size: 12px; display: grid; place-items: center;
 }
-.opt-pick[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: var(--paper); }
-.opt-pick[aria-pressed="true"]::after { content: "✓"; font-family: var(--display); font-size: 16px; }
+.opt-pick:hover { background: var(--ink); color: var(--body); }
+.opt-pick[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: var(--body); }
+.opt-pick[aria-pressed="true"]::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--body); }
 .opt-pick[aria-pressed="true"] .k { display: none; }
 .opt-name { font-weight: 600; font-size: 19px; line-height: 1.2; cursor: pointer; background: none; border: 0; padding: 0; text-align: left; }
 .opt-name:hover { color: var(--red-dark); }
-.opt-expl { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); max-width: 60ch; }
-.opt-ex-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 6px; }
-.opt-ex-btn {
-  background: none; border: 0; padding: 2px 0; cursor: pointer; color: var(--cobalt);
-  font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-  text-decoration: underline; text-underline-offset: 4px;
-}
-.opt-ex { margin: 0; font-family: var(--mono); font-size: 14px; line-height: 1.5; flex-basis: 100%; padding: 8px 12px; background: var(--card); border-left: 3px solid var(--cobalt); }
-.opt.verb .opt-name { text-transform: uppercase; letter-spacing: .1em; }
-.invent { padding: 14px 22px; border-top: 2px solid var(--ink); background: var(--card); }
-.invent label { display: block; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-.invent p { margin: 0 0 8px; font-size: 14px; color: var(--ink-soft); }
+.opt.verb .opt-name { text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.opt-expl { margin: 3px 0 0; font-size: 15px; color: var(--ink-2); max-width: 58ch; }
+.opt-ex-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-top: 6px; }
+.opt-ex-btn { background: none; border: 0; padding: 2px 0; cursor: pointer; color: var(--cobalt); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+.opt-ex-btn::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cobalt); }
+.opt-ex { margin: 0; flex-basis: 100%; font-family: var(--mono); font-size: 14px; line-height: 1.5; padding: 10px 14px; background: var(--cobalt); color: var(--body); }
+.invent { padding: 14px 26px 16px; border-top: 3px solid var(--ink); }
+.invent label { display: block; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+.invent p { margin: 0 0 8px; font-size: 14px; color: var(--ink-2); }
 .invent-row { display: flex; gap: 8px; }
-.invent input {
-  flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 9px 12px; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper);
-}
-.m-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 22px 18px; justify-content: flex-end; border-top: 1px solid rgba(34,33,31,.15); }
+.invent input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 9px 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0; background: transparent; }
+.invent input:focus { outline: none; border-bottom-color: var(--red); }
+.m-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 26px 18px; padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); }
 .m-foot .grow { margin-right: auto; }
-.btn {
-  border: 2px solid var(--ink); background: var(--paper); padding: 9px 16px; border-radius: 999px; cursor: pointer;
-  font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
-}
-.btn:hover { background: var(--ink); color: var(--paper); }
-.btn.primary { background: var(--ink); color: var(--paper); }
-.btn.primary:hover { background: var(--cobalt); border-color: var(--cobalt); }
+.btn { border: 2px solid var(--ink); background: transparent; padding: 9px 15px; border-radius: 2px; cursor: pointer; font-size: 11.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.btn:hover { background: var(--ink); color: var(--body); }
+.m-foot .btn { border-color: var(--body); color: var(--body); }
+.m-foot .btn:hover { background: var(--body); color: var(--ink); }
+.m-foot .btn.primary { background: var(--red); border-color: var(--red); }
+.m-foot .btn.primary:hover { background: var(--body); color: var(--ink); border-color: var(--body); }
 
 /* ---------- Print ---------- */
 #print-root { display: none; }
@@ -408,40 +343,55 @@ dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: f
   @page { margin: 18mm; }
   body { background: #fff; padding: 0; }
   body > *:not(#print-root) { display: none !important; }
-  #print-root { display: block; }
-  #print-root .card { box-shadow: none; border: 1px solid #000; background-image: none; animation: none; max-width: 150mm; margin: 0 auto; }
-  #print-root .card::before { display: none; }
-  #print-root .interp { background: none; color: #000; border: 1px solid #000; max-width: 150mm; }
+  #print-root { display: block; padding: 14px; }
+  #print-root .card { box-shadow: none; animation: none; max-width: 150mm; margin: 0 auto; }
+  #print-root .interp { background: none; color: #000; border: 2px solid #000; max-width: 150mm; margin: 12mm auto 0; }
+  #print-root .interp::before { display: none; }
   #print-root .interp .sub, #print-root .interp-body p:last-child { color: #333; }
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-  .stage { grid-template-columns: 1fr; justify-items: center; }
-  .machine { width: min(480px, 100%); }
-  .side { position: static; width: 100%; max-width: 640px; }
-  .placeholder, .slot-label { display: none; }
-  .slotbar { display: none; }
-  .tray { margin-top: -4px; }
+@media (max-width: 1000px) {
+  .machine { grid-template-columns: 1fr; border-radius: 110px 22px 22px 22px; }
+  .spine { grid-row: 2; border-radius: 0; display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 18px 28px; padding: 24px; }
+  .spine .dispense { grid-row: span 3; }
+  .spine .lamps { justify-self: start; }
+  .howto { grid-column: 1 / -1; margin: 0; }
+  .slot { grid-row: 3; padding-top: 18px; }
+  .slot i { background: var(--ink); }
+  .machine::after { right: 18%; }
   .colophon { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 620px) {
-  body { font-size: 16px; padding-top: 16px; }
-  .top { grid-template-columns: 1fr; }
-  .top .note { text-align: left; max-width: none; }
-  .cabinet { grid-template-columns: 9% minmax(0,1fr) 9%; }
-  .glass { height: 72px; }
-  .colophon { grid-template-columns: 1fr; }
-  dialog.menu { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; margin: 0; }
-  .m-head { padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
-  .m-foot { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 760px) {
+  .carts { grid-template-columns: 1fr; }
+  .cart { display: grid; grid-template-columns: 58px minmax(0,1fr); grid-template-areas: "top name" "top ap" "top q" "top ctrl"; column-gap: 12px; row-gap: 8px; }
+  .cart-top { grid-area: top; flex-direction: column; gap: 10px; }
+  .cart-name { grid-area: name; margin: 0; }
+  .aperture { grid-area: ap; height: 80px; }
+  .cart-q { grid-area: q; }
+  .cart-ctrl { grid-area: ctrl; }
+  .plate { grid-template-columns: auto minmax(0,1fr); padding-left: 34px; }
+  .model { grid-column: 1 / -1; text-align: left; }
+  .mark { width: 56px; height: 56px; }
 }
-@media (max-width: 400px) {
-  .win-row { grid-template-columns: minmax(0,1fr) 34px; gap: 8px; }
-  .mini { width: 30px; height: 30px; }
-  .plate { grid-template-columns: 1fr; }
-  .chance { grid-template-columns: auto 1fr; justify-items: start; align-items: center; }
-  .chance small { max-width: none; text-align: left; }
+@media (max-width: 560px) {
+  body { font-size: 16px; padding-top: 14px; }
+  .machine { border-radius: 72px 16px 16px 16px; }
+  .deck { padding: 16px 12px 18px; }
+  .plate { padding-left: 22px; }
+  .cart { grid-template-columns: 44px minmax(0,1fr); padding: 14px 12px 12px; }
+  .cart-no { font-size: 36px; }
+  .key { width: 34px; height: 34px; }
+  .tab { padding: 0 10px; }
+  .spine { grid-template-columns: 1fr; justify-items: center; }
+  .spine .dispense { grid-row: auto; width: 156px; height: 156px; }
+  .spine .lamps { justify-self: center; }
+  .chance { max-width: 300px; }
+  .card-top { grid-template-columns: auto minmax(0,1fr); }
+  .card-meta { grid-column: 1 / -1; grid-row: 2; }
+  .card-vars { grid-template-columns: 1fr; }
+  .colophon { grid-template-columns: 1fr; }
+  .m-head, .opt, .invent, .m-foot { padding-left: 18px; padding-right: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
@@ -450,81 +400,84 @@ dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: f
 </head>
 <body>
 <div class="page">
-  <header class="top">
-    <div>
-      <h1>Ritual Tech <span>Score Dispenser</span></h1>
-      <p>A machine for composing encounters with the digital traces of your life. Set the windows, pull the drawer, and take away an event score to perform however you like.</p>
+  <p class="topline"><span>Ritual Tech · an apparatus for composing encounters with your digital traces</span><em>Nothing you choose leaves this page</em></p>
+
+  <main class="machine" id="machine" aria-labelledby="machine-title">
+    <div class="deck">
+      <header class="plate">
+        <svg class="mark" viewBox="0 0 74 74" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" fill="var(--red)"/>
+          <rect x="40" y="2" width="32" height="32" fill="var(--ink)"/>
+          <path d="M2 72 A 18 18 0 0 1 38 72 Z" fill="var(--ink)"/>
+          <circle cx="56" cy="56" r="15" fill="none" stroke="var(--ink)" stroke-width="3"/>
+        </svg>
+        <h1 id="machine-title">Ritual<br>Tech</h1>
+        <p class="model"><b>Apparatus RT-6</b>Six cartridges<br>One proposition</p>
+      </header>
+
+      <section class="rack" aria-labelledby="rack-req">
+        <h2 class="rack-label" id="rack-req"><i class="shape-sq" aria-hidden="true"></i>Required <span>set all three</span></h2>
+        <div class="carts" id="front-req"></div>
+      </section>
+      <section class="rack" aria-labelledby="rack-opt">
+        <h2 class="rack-label" id="rack-opt"><i class="shape-ci" aria-hidden="true"></i>Optional <span>set any, or none</span></h2>
+        <div class="carts" id="front-opt"></div>
+      </section>
     </div>
-    <p class="note">Nothing you choose leaves this page</p>
-  </header>
 
-  <div class="stage">
-    <main class="machine" aria-labelledby="machine-title">
-      <div class="lid" aria-hidden="true"></div>
-      <div class="cabinet">
-        <div class="pillar" aria-hidden="true"></div>
-        <div class="face">
-          <h2 class="script" id="machine-title">Ritual Tech</h2>
-          <section class="rows" id="front" aria-label="Variable windows"></section>
-
-          <section class="plate" aria-label="To operate">
-            <h2>TO OPERATE</h2>
-            <ol>
-              <li>Set windows 01, 02 and 03. Press a knob to read options and examples.</li>
-              <li>Windows 04 to 06 are optional. Leave them empty if you like.</li>
-              <li>Pull the drawer for a score.</li>
-            </ol>
-            <button class="chance" id="chance" type="button">
-              <span class="coin-slot" aria-hidden="true"><i></i></span>
-              Chance<small>sets every window</small>
-            </button>
-            <div class="plate-foot">
-              <div class="lamps" aria-hidden="true">
-                <span class="lamp" data-lamp="source"><i></i>01</span>
-                <span class="lamp" data-lamp="selection"><i></i>02</span>
-                <span class="lamp" data-lamp="transformation"><i></i>03</span>
-              </div>
-              <button class="clear-all" id="clearAll" type="button">Clear all</button>
-              <span>Model 01 · Six windows</span>
-            </div>
-          </section>
-
-          <div class="drawer-bay">
-            <button class="dispense" id="dispense" type="button" disabled>Dispense score<span id="dispenseSub">Set 01 · 02 · 03</span></button>
-          </div>
-        </div>
-        <div class="pillar" aria-hidden="true"></div>
+    <aside class="spine" aria-label="Controls">
+      <button class="dispense" id="dispense" type="button" disabled>
+        <svg class="dial-ring" id="dialRing" viewBox="0 0 194 194" aria-hidden="true">
+          <circle cx="97" cy="97" r="94" fill="none" stroke="var(--body)" stroke-width="2" stroke-dasharray="2 9.8"/>
+          <rect x="93" y="0" width="8" height="14" fill="var(--body)"/>
+        </svg>
+        <span class="eye" aria-hidden="true"><span class="pupil" id="pupil"></span></span>
+        <span class="dial-text">Dispense<span id="dispenseSub">Set 01 · 02 · 03</span></span>
+      </button>
+      <div class="lamps" aria-hidden="true">
+        <span class="lamp" data-lamp="source"><i></i>01</span>
+        <span class="lamp" data-lamp="selection"><i></i>02</span>
+        <span class="lamp" data-lamp="transformation"><i></i>03</span>
       </div>
-      <div class="plinth" aria-hidden="true"></div>
-    </main>
-
-    <aside class="side" aria-label="Your score">
-      <div class="slotbar" aria-hidden="true"></div>
-      <p class="slot-label" aria-hidden="true">Scores</p>
-      <div class="placeholder" id="placeholder"><b>Your score will drop here.</b>Set the three required windows and pull the drawer.</div>
-      <section class="tray empty" id="tray" aria-live="polite" aria-label="Dispensed score"></section>
-
-      <div id="after" hidden>
-        <div class="tools" role="toolbar" aria-label="Score tools">
-          <button class="tool" id="editBtn" type="button" aria-pressed="false">Edit score</button>
-          <button class="tool" id="redrawBtn" type="button">Redraw wording</button>
-          <button class="tool" id="copyBtn" type="button">Copy</button>
-          <button class="tool" id="printBtn" type="button">Print</button>
-          <button class="tool" id="saveBtn" type="button">Save as card</button>
-          <button class="tool" id="shareBtn" type="button" hidden>Share</button>
-          <label class="tool-opt"><input type="checkbox" id="withInterp"> Include interpretation</label>
-        </div>
-        <p class="toast" id="toast" role="status"></p>
-        <p class="share-note">Only the words on the card are copied, printed or shared. Nothing about what you find goes anywhere.</p>
-
-        <section class="interp" id="interp" aria-labelledby="interp-h">
-          <h2 id="interp-h">One possible interpretation</h2>
-          <p class="sub">Optional. One person's way in, not the right one.</p>
-          <div class="interp-body" id="interpBody"></div>
-          <button class="tool" id="anotherBtn" type="button">Another example</button>
-        </section>
-      </div>
+      <button class="chance" id="chance" type="button">
+        <span class="disc" id="disc" aria-hidden="true"></span>
+        <span><b>Chance</b><small>Sets every cartridge. Optional ones may stay empty.</small></span>
+      </button>
+      <ol class="howto">
+        <li>Set cartridges 01, 02 and 03. Open any one to read its options and examples.</li>
+        <li>04 to 06 are optional.</li>
+        <li>Press the red dial.</li>
+      </ol>
+      <button class="clear-all" id="clearAll" type="button">Clear all cartridges</button>
     </aside>
+
+    <div class="slot" aria-hidden="true"><i></i><span>Scores issue here</span></div>
+  </main>
+
+  <div class="output">
+    <p class="placeholder" id="placeholder">No score yet. Set the three black cartridges and press the red dial.</p>
+    <section class="tray empty" id="tray" aria-live="polite" aria-label="Dispensed score"></section>
+
+    <div id="after" hidden>
+      <div class="tools" role="toolbar" aria-label="Score tools">
+        <button class="tool" id="editBtn" type="button" aria-pressed="false">Edit score</button>
+        <button class="tool" id="redrawBtn" type="button">Redraw wording</button>
+        <button class="tool" id="copyBtn" type="button">Copy</button>
+        <button class="tool" id="printBtn" type="button">Print</button>
+        <button class="tool" id="saveBtn" type="button">Save as card</button>
+        <button class="tool" id="shareBtn" type="button" hidden>Share</button>
+        <label class="tool-opt"><input type="checkbox" id="withInterp"> Include interpretation</label>
+      </div>
+      <p class="toast" id="toast" role="status"></p>
+      <p class="share-note">Only the words on the card are copied, printed or shared. Nothing about what you find goes anywhere.</p>
+
+      <section class="interp" id="interp" aria-labelledby="interp-h">
+        <h2 id="interp-h">One possible interpretation</h2>
+        <p class="sub">Optional. One person's way in, not the right one.</p>
+        <div class="interp-body" id="interpBody"></div>
+        <button class="tool" id="anotherBtn" type="button">Another example</button>
+      </section>
+    </div>
   </div>
 
   <footer class="colophon">
@@ -536,7 +489,7 @@ dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: f
     <div>
       <h3>Privacy</h3>
       <p>The machine never asks for, sees or stores your files. You explore your own material, on your own devices, in your own time.</p>
-      <p>Your window settings are remembered only in this browser.</p>
+      <p>Your cartridge settings are remembered only in this browser.</p>
     </div>
     <div>
       <h3>No outcome required</h3>
@@ -549,7 +502,7 @@ dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: f
 
 <dialog class="menu" id="menu" aria-labelledby="m-title">
   <div class="m-head">
-    <div class="m-eyebrow"><span class="win-no" id="m-no">01</span><span id="m-name">Source</span><span id="m-req" class="win-tag" style="margin-left:0">Required</span></div>
+    <div class="m-eyebrow"><span class="m-no" id="m-no">01</span><span class="m-name"><span id="m-name">Source</span><span class="m-req" id="m-req">Required</span></span></div>
     <h2 id="m-title">Where will you look?</h2>
     <p class="m-hint" id="m-hint"></p>
     <button class="m-close" id="m-close" type="button" aria-label="Close menu">×</button>
@@ -907,32 +860,25 @@ const ICONS = {
   die: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6.8" cy="6.8" r="1.5" fill="currentColor"/><circle cx="13.2" cy="13.2" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="13.2" cy="6.8" r="1.5" fill="currentColor"/><circle cx="6.8" cy="13.2" r="1.5" fill="currentColor"/></svg>'
 };
 
-const BANDS = { source: "var(--red)", selection: "var(--cobalt)", transformation: "var(--ink)", interaction: "var(--enamel)", condition: "var(--brass)", afterlife: "#7A5C7E" };
-const front = document.getElementById("front");
+const front = document.getElementById("machine");
 WINDOWS.forEach(w => {
   const el = document.createElement("article");
-  el.className = "win";
+  el.className = "cart " + (w.required ? "req" : "free");
   el.dataset.key = w.key;
   el.dataset.required = w.required;
   el.innerHTML = `
-    <div class="win-cap">
-      <div class="win-cap-t">
-        <div class="win-line"><span class="win-no">${w.no}</span><span class="win-name">${w.name}</span></div>
-        <p class="win-q">${w.q} <span class="win-tag">${w.required ? "Required" : "Optional"}</span></p>
-      </div>
-      <div class="ctrls">
-        <button class="mini" type="button" data-act="prev" aria-label="Previous ${w.name} option">${ICONS.prev}</button>
-        <button class="mini" type="button" data-act="rand" aria-label="Choose ${w.name} by chance" title="Chance">${ICONS.die}</button>
-        <button class="mini" type="button" data-act="next" aria-label="Next ${w.name} option">${ICONS.next}</button>
-      </div>
-    </div>
-    <div class="win-row">
-      <button class="glass" type="button" aria-label="Open the ${w.name} menu"><div class="reel"></div></button>
-      <button class="push" type="button" data-act="menu" aria-label="Open the ${w.name} menu" title="Menu"></button>
+    <div class="cart-top" aria-hidden="true"><span class="cart-no">${w.no}</span><span class="cart-flag"></span></div>
+    <h3 class="cart-name"><span class="sr">${w.no} </span>${w.name}<span class="sr">, ${w.required ? "required" : "optional"}</span></h3>
+    <button class="aperture" type="button" aria-label="Open the ${w.name} menu"><div class="reel"></div></button>
+    <p class="cart-q">${w.q}</p>
+    <div class="cart-ctrl">
+      <button class="key" type="button" data-act="prev" aria-label="Previous ${w.name} option">${ICONS.prev}</button>
+      <button class="key" type="button" data-act="rand" aria-label="Choose ${w.name} by chance" title="Chance">${ICONS.die}</button>
+      <button class="key" type="button" data-act="next" aria-label="Next ${w.name} option">${ICONS.next}</button>
+      <button class="tab" type="button" data-act="menu" aria-label="Open the ${w.name} menu">Open</button>
     </div>`;
-  el.style.setProperty("--band", BANDS[w.key]);
-  front.appendChild(el);
-  el.querySelector(".glass").addEventListener("click", () => openMenu(w.key));
+  document.getElementById(w.required ? "front-req" : "front-opt").appendChild(el);
+  el.querySelector(".aperture").addEventListener("click", () => openMenu(w.key));
   el.querySelector('[data-act="menu"]').addEventListener("click", () => openMenu(w.key));
   el.querySelector('[data-act="prev"]').addEventListener("click", () => cycle(w.key, -1));
   el.querySelector('[data-act="next"]').addEventListener("click", () => cycle(w.key, 1));
@@ -945,6 +891,17 @@ WINDOWS.forEach(w => {
   renderReel(w.key, 0);
 });
 
+/* the dial's eye turns toward whatever was last touched */
+function lookAt(target) {
+  const pupil = document.getElementById("pupil");
+  if (!pupil || !target) return;
+  const e = pupil.parentElement.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  const dx = (t.left + t.width / 2) - (e.left + e.width / 2), dy = (t.top + t.height / 2) - (e.top + e.height / 2);
+  const a = Math.atan2(dy, dx), d = Math.min(8, Math.hypot(dx, dy) / 30);
+  pupil.style.transform = `translate(${(Math.cos(a) * d).toFixed(1)}px, ${(Math.sin(a) * d).toFixed(1)}px)`;
+}
+
 function reelContent(w, entries) {
   if (!entries.length) return { label: "—", sub: "" };
   const first = entries[0];
@@ -956,7 +913,7 @@ function reelContent(w, entries) {
 function makeRi(content, cls) {
   const d = document.createElement("div");
   d.className = "ri" + (cls ? " " + cls : "") + (content.empty ? " empty" : "");
-  if (content.empty) { d.textContent = content.label; return d; }
+  if (content.empty) { d.innerHTML = `<span>${esc(content.label)}</span>`; return d; }
   d.innerHTML = `<span class="ri-label">${esc(content.label)}</span>${content.sub ? `<span class="ri-sub">${esc(content.sub)}</span>` : ""}`;
   return d;
 }
@@ -976,7 +933,9 @@ function renderReel(key, dir) {
   const w = WIN[key];
   const el = front.querySelector(`[data-key="${key}"]`);
   el.classList.toggle("filled", state[key].length > 0);
-  setReelRaw(key, state[key].length ? reelContent(w, state[key]) : { empty: true, label: w.required ? "Choose" : "Empty · optional" }, dir);
+  setReelRaw(key, state[key].length ? reelContent(w, state[key]) : { empty: true, label: w.required ? "Not yet set" : "Left empty" }, dir);
+  if (dir && !el.classList.contains("spinning") && !reduced) { el.classList.remove("clunk"); void el.offsetWidth; el.classList.add("clunk"); }
+  if (dir) lookAt(el);
   updateMachine();
 }
 
@@ -1071,9 +1030,10 @@ function changed() {
 }
 const sig = () => JSON.stringify(WINDOWS.map(w => state[w.key]));
 
+let discAngle = 0;
 document.getElementById("chance").addEventListener("click", async (ev) => {
-  const btn = ev.currentTarget;
-  btn.classList.remove("coin"); void btn.offsetWidth; btn.classList.add("coin");
+  discAngle += 220 + Math.random() * 520;
+  document.getElementById("disc").style.transform = `rotate(${discAngle}deg)`;
   const jobs = WINDOWS.map((w, i) => {
     if (!w.required && Math.random() < 0.45) {
       return new Promise(res => setTimeout(() => { state[w.key] = []; renderReel(w.key, 0); changed(); res(); }, i * 90));
@@ -1099,6 +1059,8 @@ const exIndex = {}; // "key:id" -> shown example index
 function openMenu(key) {
   menuKey = key;
   const w = WIN[key];
+  menu.classList.toggle("is-free", !w.required);
+  lookAt(front.querySelector(`[data-key="${key}"]`));
   document.getElementById("m-no").textContent = w.no;
   document.getElementById("m-name").textContent = w.name;
   document.getElementById("m-req").textContent = w.required ? "Required" : "Optional";
@@ -1206,7 +1168,7 @@ document.getElementById("m-done").addEventListener("click", closeMenu);
 document.getElementById("m-close").addEventListener("click", closeMenu);
 menu.addEventListener("click", ev => { if (ev.target === menu) closeMenu(); });
 menu.addEventListener("close", () => {
-  const win = front.querySelector(`[data-key="${menuKey}"] .push`);
+  const win = front.querySelector(`[data-key="${menuKey}"] .tab`);
   if (win) win.focus();
 });
 
@@ -1302,7 +1264,10 @@ function compose(seed) {
   // footer: which variables went in
   const vars = WINDOWS.filter(w => state[w.key].length).map(w => `${w.no} ${state[w.key].map(e => e.id === "custom" ? "own" : (byId(w.options, e.id).short || byId(w.options, e.id).label)).join(" + ")}`);
 
-  return { title, lines: lines.map(l => l.t), vars, src, sel, T, tE, ctx };
+  // emblem: one mark per cartridge
+  const marks = WINDOWS.map(w => { const e = state[w.key][0]; return { req: w.required, set: !!e, idx: !e ? 0 : e.id === "custom" ? -1 : w.options.findIndex(o => o.id === e.id) }; });
+
+  return { title, lines: lines.map(l => l.t), vars, marks, src, sel, T, tE, ctx };
 }
 
 function interpretation(score, idx) {
@@ -1354,18 +1319,68 @@ function dateStamp() {
   return `${d.getDate()} · ${R[d.getMonth()]} · ${d.getFullYear()}`;
 }
 
+/* a small emblem unique to each score: one cell per cartridge, shape from the option chosen */
+const SHAPES = ["circle", "square", "half", "triangle"];
+function markSpecs(marks) {
+  return marks.map((m, i) => ({
+    kind: !m.set ? "dot" : m.idx < 0 ? "ring" : SHAPES[m.idx % 4],
+    mode: !m.set ? "fill" : m.req ? "fill" : "stroke",
+    color: m.set && i === 2 ? "var(--red)" : "var(--ink)",
+    cx: 16 + (i % 3) * 32, cy: 16 + Math.floor(i / 3) * 32
+  }));
+}
+function emblemSVG(marks) {
+  const r = 11;
+  const parts = markSpecs(marks).map(s => {
+    const paint = s.mode === "fill" ? `fill="${s.color}"` : `fill="none" stroke="${s.color}" stroke-width="2.6"`;
+    const { cx, cy } = s;
+    switch (s.kind) {
+      case "dot": return `<circle cx="${cx}" cy="${cy}" r="2.2" fill="var(--ink)"/>`;
+      case "ring": return `<circle cx="${cx}" cy="${cy}" r="${r - 1}" fill="none" stroke="${s.color}" stroke-width="2.6"/><circle cx="${cx}" cy="${cy}" r="3" fill="${s.color}"/>`;
+      case "circle": return `<circle cx="${cx}" cy="${cy}" r="${r}" ${paint}/>`;
+      case "square": return `<rect x="${cx - r + 1}" y="${cy - r + 1}" width="${2 * r - 2}" height="${2 * r - 2}" ${paint}/>`;
+      case "half": return `<path d="M${cx - r} ${cy + 5} A ${r} ${r} 0 0 1 ${cx + r} ${cy + 5} Z" ${paint}/>`;
+      default: return `<path d="M${cx} ${cy - r} L${cx + r} ${cy + r - 2} L${cx - r} ${cy + r - 2} Z" ${paint}/>`;
+    }
+  }).join("");
+  return `<svg class="emblem" viewBox="0 0 96 64" role="img" aria-label="Emblem of this score's settings">${parts}</svg>`;
+}
+function drawEmblem(g, marks, x, y, scale, css) {
+  const col = v => v === "var(--red)" ? css("--red") : css("--ink");
+  markSpecs(marks).forEach(s => {
+    const cx = x + s.cx * scale, cy = y + s.cy * scale, r = 11 * scale;
+    g.beginPath();
+    if (s.kind === "dot") { g.arc(cx, cy, 2.2 * scale, 0, Math.PI * 2); g.fillStyle = css("--ink"); g.fill(); return; }
+    if (s.kind === "ring") {
+      g.arc(cx, cy, r - scale, 0, Math.PI * 2); g.strokeStyle = col(s.color); g.lineWidth = 2.6 * scale; g.stroke();
+      g.beginPath(); g.arc(cx, cy, 3 * scale, 0, Math.PI * 2); g.fillStyle = col(s.color); g.fill(); return;
+    }
+    if (s.kind === "circle") g.arc(cx, cy, r, 0, Math.PI * 2);
+    else if (s.kind === "square") g.rect(cx - r + scale, cy - r + scale, 2 * r - 2 * scale, 2 * r - 2 * scale);
+    else if (s.kind === "half") { g.moveTo(cx - r, cy + 5 * scale); g.arc(cx, cy + 5 * scale, r, Math.PI, 0); g.closePath(); }
+    else { g.moveTo(cx, cy - r); g.lineTo(cx + r, cy + r - 2 * scale); g.lineTo(cx - r, cy + r - 2 * scale); g.closePath(); }
+    if (s.mode === "fill") { g.fillStyle = col(s.color); g.fill(); }
+    else { g.strokeStyle = col(s.color); g.lineWidth = 2.6 * scale; g.stroke(); }
+  });
+}
+function splitVar(v) { const i = v.indexOf(" "); return [v.slice(0, i), v.slice(i + 1)]; }
+
 function renderCard(feed) {
   const s = current.score;
   tray.classList.remove("empty");
   document.getElementById("placeholder").hidden = true;
   tray.innerHTML = `
     <article class="card${feed && !reduced ? " feeding" : ""}" id="card">
-      <div class="card-head"><span>Ritual Tech / Score ${pad(current.number)}</span>
-        <svg class="seal" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--cobalt)"/><circle cx="16" cy="16" r="3.6" fill="var(--paper)"/></svg></div>
+      <header class="card-top">
+        <div class="card-no"><small>No.</small>${pad(current.number)}</div>
+        <div class="card-meta"><b>Ritual Tech</b>Event score<br>Edition of one</div>
+        ${emblemSVG(s.marks)}
+      </header>
       <h2 class="score-title" id="scoreTitle">${esc(s.title)}</h2>
       <div class="score-body" id="scoreBody">${s.lines.map(l => `<p${/\?$/.test(l) ? ' class="q"' : ""}>${esc(l)}</p>`).join("")}</div>
-      <div class="card-foot"><span class="vars">${esc(s.vars.join(" · "))}</span><span>${dateStamp()}</span></div>
-      <p class="stale" id="stale" hidden>The windows have changed since this score was dispensed. Dispense again for a new one, or keep this.</p>
+      <dl class="card-vars">${s.vars.map(v => { const [n, t] = splitVar(v); return `<div><dt>${esc(n)}</dt><dd>${esc(t)}</dd></div>`; }).join("")}</dl>
+      <footer class="card-foot"><span>${dateStamp()}</span><span>Apparatus RT-6</span></footer>
+      <p class="stale" id="stale" hidden>The cartridges have changed since this score was dispensed. Dispense again for a new one, or keep this.</p>
     </article>`;
   after.hidden = false;
   setEditing(false);
@@ -1376,9 +1391,13 @@ function renderInterp() {
   document.getElementById("interpBody").innerHTML = paras.map(p => `<p>${esc(p)}</p>`).join("");
 }
 
+let ringAngle = 0;
 dispenseBtn.addEventListener("click", () => {
   if (!requiredDone()) return;
   dispenseBtn.classList.add("pressed");
+  ringAngle += 120;
+  document.getElementById("dialRing").style.transform = `rotate(${ringAngle}deg)`;
+  lookAt(document.querySelector(".slot"));
   setTimeout(() => dispenseBtn.classList.remove("pressed"), 160);
   const seed = newSeed();
   current = { seed, interpIdx: Math.floor(Math.random() * 6), number: nextNumber(), sig: sig(), score: compose(seed) };
@@ -1485,13 +1504,14 @@ if (navigator.share) {
 document.getElementById("saveBtn").addEventListener("click", async () => {
   try { await document.fonts.ready; } catch (e) {}
   const c = readCard();
-  const W = 1200, P = 110, inner = W - P * 2;
+  const W = 1200, P = 100, inner = W - P * 2;
   const cv = document.createElement("canvas");
   const g = cv.getContext("2d");
-  const css = getComputedStyle(document.documentElement);
-  const col = n => css.getPropertyValue(n).trim();
-  const fDisp = (wt, sz) => `${wt} ${sz}px Jost, Futura, "Century Gothic", Arial, sans-serif`;
-  const fMono = (st, sz) => `${st} ${sz}px "IBM Plex Mono", Menlo, Consolas, monospace`;
+  const cs = getComputedStyle(document.documentElement);
+  const css = n => cs.getPropertyValue(n).trim();
+  const fD = (wt, sz) => `${wt} ${sz}px Jost, Futura, "Century Gothic", Arial, sans-serif`;
+  const fM = (st, sz) => `${st} ${sz}px "IBM Plex Mono", Menlo, Consolas, monospace`;
+  const track = px => { if (g.letterSpacing !== undefined) g.letterSpacing = px + "px"; };
   function wrap(text, font, max) {
     g.font = font;
     const words = text.split(/\s+/); const out = []; let line = "";
@@ -1499,43 +1519,56 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     if (line) out.push(line);
     return out;
   }
-  const titleL = wrap(c.title, fDisp(700, 76), inner);
-  const bodyL = c.body.map((b, i) => wrap(b, fMono(/\?$/.test(b) ? "italic 400" : "400", 34), inner));
-  const interpL = withInterp() ? c.interp.map(p => wrap(p, fDisp(400, 28), inner)) : [];
-  let H = P + 50 + 40 + titleL.length * 84 + 44 + bodyL.reduce((a, l) => a + l.length * 52 + 30, 0) + 90 + P / 2;
-  if (interpL.length) H += 80 + interpL.reduce((a, l) => a + l.length * 40 + 22, 0) + 20;
+  const titleL = wrap(c.title, fD(700, 74), inner);
+  const bodyL = c.body.map(b => wrap(b, fM(/\?$/.test(b) ? "italic 400" : "400", 33), inner));
+  const vars = current.score.vars.map(splitVar);
+  const interpL = withInterp() ? c.interp.map(p => wrap(p, fD(400, 28), inner)) : [];
+  let H = P + 190 + 40 + titleL.length * 78 + 40 + bodyL.reduce((a, l) => a + l.length * 46 + 26, 0) + 40 + Math.ceil(vars.length / 2) * 34 + 90 + P;
+  if (interpL.length) H += 90 + interpL.reduce((a, l) => a + l.length * 40 + 22, 0);
   H = Math.max(H, 1500);
-  const S = 1; cv.width = W * S; cv.height = H * S;
-  g.fillStyle = col("--paper"); g.fillRect(0, 0, W, H);
-  g.fillStyle = col("--ink");
-  let y = P;
-  g.font = fDisp(700, 24); g.textBaseline = "alphabetic";
-  if (g.letterSpacing !== undefined) g.letterSpacing = "4px";
-  g.fillText(c.head, P, y + 24);
-  if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
-  g.fillStyle = col("--cobalt"); g.beginPath(); g.arc(W - P - 22, y + 16, 22, 0, Math.PI * 2); g.fill();
-  g.fillStyle = col("--paper"); g.beginPath(); g.arc(W - P - 22, y + 16, 5.5, 0, Math.PI * 2); g.fill();
-  y += 50; g.fillStyle = col("--ink"); g.fillRect(P, y, inner, 4);
-  y += 40;
-  g.font = fDisp(700, 76);
-  titleL.forEach(l => { y += 78; g.fillText(l, P, y); });
-  y += 50;
-  bodyL.forEach((lines, i) => {
-    g.font = fMono(/\?$/.test(c.body[i]) ? "italic 400" : "400", 34);
-    lines.forEach(l => { y += 46; g.fillText(l, P, y); });
-    y += 30;
+  cv.width = W; cv.height = H;
+  g.fillStyle = css("--card"); g.fillRect(0, 0, W, H);
+  // crop marks
+  g.fillStyle = css("--ink");
+  [[40, 40, 1, 1], [W - 40, 40, -1, 1], [40, H - 40, 1, -1], [W - 40, H - 40, -1, -1]].forEach(([x, y, sx, sy]) => {
+    g.fillRect(x - sx * 26, y, sx * 18, 1.5); g.fillRect(x, y - sy * 26, 1.5, sy * 18);
   });
+  let y = P;
+  g.textBaseline = "alphabetic";
+  g.font = fD(700, 22); track(4); g.fillText("NO.", P, y + 20); track(0);
+  g.font = fD(800, 150); track(-5); g.fillText(pad(current.number), P - 6, y + 160); track(0);
+  const numW = (g.font = fD(800, 150), g.measureText(pad(current.number)).width);
+  g.font = fD(700, 20); track(3.5); g.fillStyle = css("--ink");
+  g.fillText("RITUAL TECH", P + numW + 30, y + 112);
+  g.fillStyle = css("--ink-2"); g.font = fD(600, 19);
+  g.fillText("EVENT SCORE", P + numW + 30, y + 138); g.fillText("EDITION OF ONE", P + numW + 30, y + 162); track(0);
+  drawEmblem(g, current.score.marks, W - P - 192, y + 34, 2, css);
+  y += 190; g.fillStyle = css("--ink"); g.fillRect(P, y, inner, 5);
+  y += 40;
+  g.font = fD(700, 74);
+  titleL.forEach(l => { y += 74; g.fillText(l, P, y); });
+  y += 40;
+  bodyL.forEach((lines, i) => {
+    g.font = fM(/\?$/.test(c.body[i]) ? "italic 400" : "400", 33);
+    lines.forEach(l => { y += 46; g.fillText(l, P, y); });
+    y += 26;
+  });
+  y += 14; g.fillRect(P, y, inner, 2); y += 14;
+  vars.forEach(([n, t], i) => {
+    const x = P + (i % 2) * (inner / 2), yy = y + Math.floor(i / 2) * 34 + 26;
+    g.font = fM("500", 20); g.fillStyle = css("--red-dark"); g.fillText(n, x, yy);
+    g.font = fD(600, 19); g.fillStyle = css("--ink"); track(2); g.fillText(t.toUpperCase(), x + 44, yy); track(0);
+  });
+  y += Math.ceil(vars.length / 2) * 34 + 30;
   if (interpL.length) {
-    y += 30; g.fillStyle = col("--cobalt"); g.fillRect(P, y, inner, 3); y += 50;
-    g.font = fDisp(700, 22); if (g.letterSpacing !== undefined) g.letterSpacing = "4px";
-    g.fillText("ONE POSSIBLE INTERPRETATION", P, y); if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
-    y += 14; g.fillStyle = col("--ink");
-    interpL.forEach(lines => { g.font = fDisp(400, 28); lines.forEach(l => { y += 40; g.fillText(l, P, y); }); y += 22; });
+    y += 20; g.fillStyle = css("--cobalt"); g.fillRect(P, y, inner, 4); y += 44;
+    g.font = fD(700, 21); track(4); g.fillText("ONE POSSIBLE INTERPRETATION", P, y); track(0);
+    y += 10; g.fillStyle = css("--ink");
+    interpL.forEach(lines => { g.font = fD(400, 28); lines.forEach(l => { y += 40; g.fillText(l, P, y); }); y += 22; });
   }
-  g.fillStyle = col("--ink-soft"); g.font = fDisp(600, 20);
-  if (g.letterSpacing !== undefined) g.letterSpacing = "3px";
-  g.fillText(dateStamp().toUpperCase(), P, H - P / 2);
-  const brand = "RITUAL TECH"; g.fillText(brand, W - P - g.measureText(brand).width, H - P / 2);
+  g.fillStyle = css("--ink"); g.font = fD(700, 19); track(4);
+  g.fillText(dateStamp().toUpperCase(), P, H - P + 20);
+  const brand = "APPARATUS RT-6"; g.fillText(brand, W - P - g.measureText(brand).width, H - P + 20); track(0);
   cv.toBlob(blob => {
     if (!blob) { toast("This browser couldn't make the image."); return; }
     const a = document.createElement("a");
