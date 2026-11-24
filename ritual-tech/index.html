@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ritual Tech — The Score Dispenser</title>
+<meta name="description" content="Ritual Tech is a machine for composing encounters with the digital traces of your life. Set six windows, dispense an event score, and perform it however you like.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#E9E2D2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: one cabinet centred on an ivory ground — marquee, six reel windows (3×2 → 2×3 → 1×6),
+   a control deck, a paper slot; the score card feeds out beneath the slot. */
+:root {
+  --ground: #E9E2D2;      /* warm ivory ground */
+  --paper: #FBF7EC;       /* card stock */
+  --card: #F6F0E1;        /* reel cards behind glass */
+  --ink: #22211F;         /* charcoal */
+  --ink-soft: #5A5750;
+  --red: #A9412F;         /* muted enamel red */
+  --red-dark: #7F2F22;
+  --cobalt: #21409A;
+  --cobalt-dark: #172E70;
+  --metal-hi: #ECEBE6;
+  --metal: #BDBCB5;
+  --metal-lo: #85847D;
+  --lamp: #F2B33D;
+
+  --display: "Jost", "Futura", "Century Gothic", "Avenir Next", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --r-reel: 340ms;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1.45;
+  padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background-image: radial-gradient(rgba(34,33,31,.07) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.page { max-width: 1120px; margin: 0 auto; }
+
+/* ---------- Intro line ---------- */
+.intro {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+  gap: 8px 24px; margin: 0 6px 18px;
+  font-size: 13px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600;
+}
+.intro em { font-style: normal; color: var(--red); }
+
+/* ---------- Cabinet ---------- */
+.machine {
+  position: relative;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.10), transparent 6%, transparent 94%, rgba(0,0,0,.14)),
+    linear-gradient(180deg, #B4472F, var(--red) 40%, #9D3C2B);
+  border-radius: 34px 34px 18px 18px;
+  padding: clamp(14px, 2.4vw, 28px);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.22),
+    inset 0 -8px 0 rgba(0,0,0,.20),
+    0 2px 0 var(--red-dark),
+    0 40px 70px -40px rgba(60,25,10,.65);
+}
+.rivets::before, .rivets::after {
+  content: ""; position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--metal-hi), var(--metal-lo));
+  box-shadow: 0 1px 1px rgba(0,0,0,.35);
+  top: 14px;
+}
+.rivets::before { left: 14px; } .rivets::after { right: 14px; }
+
+.marquee {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 18px 18px 6px 6px;
+  padding: clamp(16px, 2.6vw, 26px) clamp(18px, 3vw, 34px);
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 24px; align-items: end;
+  box-shadow: inset 0 0 0 3px #34322f, inset 0 0 0 5px var(--metal-lo);
+}
+.marquee h1 {
+  margin: 0; font-weight: 800; font-size: clamp(40px, 7.4vw, 92px); line-height: .86;
+  letter-spacing: -.01em; text-transform: uppercase;
+}
+.marquee h1 span { display: block; color: var(--lamp); }
+.marquee h1 .t2 { color: var(--paper); }
+.plate {
+  text-align: right; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 600;
+  line-height: 1.6;
+}
+.plate b { display: block; font-size: clamp(15px, 1.7vw, 19px); letter-spacing: .14em; font-weight: 700; color: var(--paper); }
+.plate span { color: #A9A59A; }
+
+/* ---------- Front panel & windows ---------- */
+.front {
+  margin-top: clamp(12px, 2vw, 20px);
+  background: var(--paper);
+  border-radius: 8px;
+  padding: clamp(12px, 2vw, 22px);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), inset 0 3px 8px rgba(0,0,0,.08);
+  display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: clamp(12px, 1.8vw, 20px);
+}
+.win {
+  position: relative;
+  border-radius: 10px;
+  padding: 12px 12px 12px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--metal-hi), var(--metal) 70%, #AEADA6);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.25);
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.win-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.win-no {
+  background: var(--cobalt); color: var(--paper); font-weight: 700; font-size: 13px;
+  padding: 2px 7px; border-radius: 3px; letter-spacing: .06em; font-variant-numeric: tabular-nums;
+}
+.win-name { font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: 14px; }
+.win-tag {
+  margin-left: auto; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft);
+}
+.win[data-required="true"] .win-tag { color: var(--red-dark); }
+
+.glass {
+  position: relative; display: block; width: 100%; height: 128px; padding: 0; border: 0; cursor: pointer;
+  background: var(--card); border-radius: 5px; overflow: hidden; text-align: left;
+  box-shadow: inset 0 0 0 2px #8f8e87, inset 0 4px 10px rgba(0,0,0,.28);
+}
+.glass::after { /* glare */
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  background: linear-gradient(118deg, rgba(255,255,255,.55) 0 14%, rgba(255,255,255,0) 14.5% 60%, rgba(255,255,255,.18) 60.5% 66%, rgba(255,255,255,0) 66.5%);
+  mix-blend-mode: soft-light;
+}
+.glass::before { /* reel index ticks */
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; z-index: 3;
+  background: repeating-linear-gradient(180deg, var(--ink) 0 1px, transparent 1px 8px);
+  opacity: .22;
+}
+.reel { position: absolute; inset: 0; overflow: hidden; }
+.ri {
+  position: absolute; inset: 0; padding: 14px 16px 14px 20px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+}
+.ri-label {
+  font-weight: 600; font-size: clamp(20px, 2.1vw, 25px); line-height: 1.08; letter-spacing: -.005em;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.ri-sub { font-size: 13px; line-height: 1.3; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ri-more { font-family: var(--mono); font-size: 12px; color: var(--cobalt); }
+.ri.in-b { animation: inB var(--r-reel) cubic-bezier(.25,1.45,.45,1) both; }
+.ri.in-a { animation: inA var(--r-reel) cubic-bezier(.25,1.45,.45,1) both; }
+.ri.out-a { animation: outA var(--r-reel) cubic-bezier(.55,0,.8,.4) both; }
+.ri.out-b { animation: outB var(--r-reel) cubic-bezier(.55,0,.8,.4) both; }
+.spinning { --r-reel: 85ms; }
+.spinning .ri { filter: blur(.6px); }
+@keyframes inB { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes inA { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes outA { to { transform: translateY(-100%); } }
+@keyframes outB { to { transform: translateY(100%); } }
+
+.shutter {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    repeating-linear-gradient(180deg, #d9d8d2 0 10px, #9c9b95 10px 11px, #efeee9 11px 13px);
+  transition: transform .5s cubic-bezier(.65,0,.3,1);
+  display: grid; place-items: center;
+}
+.shutter span {
+  background: var(--paper); padding: 5px 10px; border-radius: 3px;
+  font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.win[data-required="true"] .shutter span::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+}
+.win.filled .shutter { transform: translateY(-102%); }
+
+.win-q { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.25; }
+.ctrl { display: flex; gap: 8px; align-items: center; }
+.knob {
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer; flex: none;
+  background: radial-gradient(circle at 38% 30%, #fff, var(--metal-hi) 30%, var(--metal) 70%, var(--metal-lo));
+  box-shadow: 0 2px 0 #77766f, 0 3px 4px rgba(0,0,0,.25), inset 0 -1px 0 rgba(0,0,0,.15);
+  display: grid; place-items: center; transition: transform .08s, box-shadow .08s;
+}
+.knob svg { width: 18px; height: 18px; }
+.knob:active, .pill:active { transform: translateY(2px); box-shadow: 0 0 0 #77766f, 0 1px 2px rgba(0,0,0,.25); }
+.pill {
+  flex: 1; height: 40px; border: 0; border-radius: 20px; cursor: pointer;
+  background: var(--ink); color: var(--paper);
+  font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  box-shadow: 0 2px 0 #000, 0 3px 4px rgba(0,0,0,.25);
+  transition: transform .08s, box-shadow .08s;
+}
+.pill:hover { background: #33312e; }
+.knob:hover { filter: brightness(1.04); }
+
+/* ---------- Deck ---------- */
+.deck {
+  margin-top: clamp(12px, 2vw, 20px);
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(14px, 2.4vw, 28px); align-items: center;
+  background: linear-gradient(180deg, #2b2a27, var(--ink));
+  border-radius: 8px; padding: clamp(16px, 2.4vw, 26px);
+  color: var(--paper);
+  box-shadow: inset 0 0 0 2px #3a3835;
+}
+.deck-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; font-weight: 600; color: #B6B1A4; }
+.chance {
+  display: flex; align-items: center; gap: 14px; border: 0; background: none; cursor: pointer; text-align: left; padding: 6px;
+  border-radius: 10px; color: var(--paper);
+}
+.chance .slot {
+  width: 46px; height: 74px; flex: none; border-radius: 8px; display: grid; place-items: center;
+  background: linear-gradient(180deg, var(--metal-hi), var(--metal-lo));
+  box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(0,0,0,.4);
+}
+.chance .slot i { display: block; width: 6px; height: 44px; border-radius: 3px; background: #1a1917; box-shadow: inset 0 2px 3px #000; }
+.chance b { display: block; font-size: 16px; letter-spacing: .16em; text-transform: uppercase; }
+.chance small { display: block; font-size: 13px; color: #B6B1A4; line-height: 1.3; }
+.chance:hover .slot { filter: brightness(1.05); }
+.chance.coin .slot i { animation: coin .6s ease; }
+@keyframes coin { 30% { box-shadow: inset 0 2px 3px #000, 0 0 0 3px var(--lamp); } }
+.chance-row { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.clear-all {
+  background: none; border: 0; color: #B6B1A4; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px;
+}
+.clear-all:hover { color: var(--paper); }
+
+.dispense-wrap { display: grid; justify-items: center; gap: 10px; }
+.dispense {
+  width: 150px; height: 150px; border-radius: 50%; border: 0; cursor: pointer; position: relative;
+  background: radial-gradient(circle at 50% 50%, var(--cobalt) 0 60%, transparent 61%),
+              radial-gradient(circle at 40% 30%, #fff, var(--metal) 40%, var(--metal-lo));
+  box-shadow: 0 6px 0 #0e1a40, 0 10px 16px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.2);
+  color: var(--paper); font-weight: 800; font-size: 15px; letter-spacing: .14em; line-height: 1.1; text-transform: uppercase;
+  transition: transform .1s, box-shadow .1s, filter .2s;
+}
+.dispense span { display: block; font-size: 11px; font-weight: 600; letter-spacing: .2em; opacity: .75; margin-top: 4px; }
+.dispense:not(:disabled):hover { filter: brightness(1.08); }
+.dispense:not(:disabled):active, .dispense.pressed { transform: translateY(5px); box-shadow: 0 1px 0 #0e1a40, 0 3px 6px rgba(0,0,0,.45); }
+.dispense:disabled { cursor: not-allowed; filter: grayscale(.85) brightness(.8); }
+.lamps { display: flex; gap: 14px; }
+.lamp { display: grid; justify-items: center; gap: 3px; font-size: 10px; letter-spacing: .14em; font-weight: 600; color: #B6B1A4; font-variant-numeric: tabular-nums; }
+.lamp i { width: 14px; height: 14px; border-radius: 50%; background: #3d3b37; box-shadow: inset 0 1px 2px #000; transition: background .25s, box-shadow .25s; }
+.lamp.on i { background: var(--lamp); box-shadow: 0 0 10px var(--lamp), inset 0 -1px 2px rgba(0,0,0,.3); }
+
+.howto { font-size: 14px; line-height: 1.45; color: #D9D4C7; margin: 0; padding: 0; list-style: none; counter-reset: h; display: grid; gap: 6px; justify-self: end; max-width: 30ch; }
+.howto li { counter-increment: h; display: grid; grid-template-columns: 22px 1fr; }
+.howto li::before { content: counter(h); font-family: var(--mono); color: var(--lamp); }
+
+.slotbar {
+  margin: clamp(12px, 2vw, 18px) auto 0; width: min(640px, 92%); height: 16px; border-radius: 8px;
+  background: #121110; box-shadow: inset 0 3px 5px #000, 0 1px 0 rgba(255,255,255,.18);
+  position: relative;
+}
+.slotbar::after {
+  content: "SCORES"; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 6px);
+  font-size: 10px; letter-spacing: .3em; font-weight: 700; color: rgba(251,247,236,.55);
+}
+
+/* ---------- Tray & score card ---------- */
+.tray { width: min(640px, calc(92% - 0px)); margin: -10px auto 0; overflow: hidden; padding: 0 14px 36px; }
+.tray.empty { height: 0; padding: 0; }
+.card {
+  position: relative; background: var(--paper);
+  padding: 40px clamp(22px, 5vw, 52px) 30px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 18px 30px -18px rgba(40,30,10,.45);
+  transform-origin: top center;
+  background-image: linear-gradient(rgba(34,33,31,.035) 1px, transparent 1px);
+  background-size: 100% 31px; background-position: 0 104px;
+}
+.card::before { /* perforation */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px;
+  background: radial-gradient(circle at 6px 0, var(--ground) 4px, transparent 4.5px) 0 0 / 12px 8px repeat-x;
+}
+.card.feeding { animation: feed 1.7s steps(14, end) both; }
+@keyframes feed { from { transform: translateY(-104%); } to { transform: none; } }
+.card-head {
+  display: flex; justify-content: space-between; gap: 12px; align-items: center;
+  font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700;
+  padding-bottom: 14px; border-bottom: 2px solid var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.card-head .seal { width: 26px; height: 26px; flex: none; }
+.score-title {
+  margin: 22px 0 18px; font-weight: 700; font-size: clamp(28px, 4.6vw, 40px); line-height: 1.04; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.score-body { font-family: var(--mono); font-size: clamp(15px, 1.9vw, 17.5px); line-height: 1.55; display: grid; gap: 14px; }
+.score-body p { margin: 0; }
+.score-body p.q { font-style: italic; }
+.card-foot {
+  margin-top: 26px; padding-top: 12px; border-top: 1px solid rgba(34,33,31,.35);
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+}
+.card-foot .vars { max-width: 44ch; }
+.card.editing .score-title, .card.editing .score-body {
+  outline: 2px dashed var(--cobalt); outline-offset: 6px; border-radius: 2px; cursor: text;
+}
+.card.editing .score-body p.q { font-style: normal; }
+.stale {
+  margin: 14px 0 0; font-size: 14px; color: var(--red-dark); font-weight: 500;
+}
+
+.tools {
+  width: min(640px, 92%); margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.tool {
+  border: 2px solid var(--ink); background: transparent; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+}
+.tool:hover { background: var(--ink); color: var(--paper); }
+.tool.on { background: var(--cobalt); border-color: var(--cobalt); color: var(--paper); }
+.tool-opt { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 4px; }
+.tool-opt input { width: 16px; height: 16px; accent-color: var(--cobalt); }
+.toast { width: min(640px, 92%); margin: 10px auto 0; text-align: center; font-size: 14px; min-height: 1.4em; color: var(--cobalt-dark); font-weight: 500; }
+.share-note { width: min(640px, 92%); margin: 2px auto 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
+
+.interp {
+  width: min(640px, 92%); margin: 28px auto 0; background: var(--cobalt); color: var(--paper);
+  padding: clamp(20px, 4vw, 34px); border-radius: 2px; position: relative;
+}
+.interp h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
+.interp .sub { margin: 0 0 18px; font-size: 14px; color: #C5CEEB; }
+.interp-body { display: grid; gap: 12px; max-width: 60ch; }
+.interp-body p { margin: 0; font-size: 16.5px; line-height: 1.55; }
+.interp-body p:last-child { color: #DCE2F5; font-style: italic; }
+.interp .tool { border-color: var(--paper); color: var(--paper); margin-top: 20px; }
+.interp .tool:hover { background: var(--paper); color: var(--cobalt); }
+
+/* ---------- Colophon ---------- */
+.colophon {
+  margin-top: 64px; border-top: 2px solid var(--ink); padding-top: 22px;
+  display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px;
+}
+.colophon h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; }
+.colophon p { margin: 0 0 .8em; font-size: 15.5px; max-width: 38ch; }
+.colophon .motto { grid-column: 1 / -1; font-size: clamp(22px, 3vw, 32px); font-weight: 600; line-height: 1.2; margin: 6px 0 0; max-width: 28ch; text-wrap: balance; }
+.colophon .motto span { color: var(--red); }
+
+/* ---------- Menu dialog ---------- */
+dialog.menu {
+  border: 0; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: min(88vh, 900px);
+  background: var(--paper); color: var(--ink); border-radius: 6px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.6);
+}
+dialog.menu::backdrop { background: rgba(34,33,31,.55); }
+dialog.menu[open] { animation: drawer .32s cubic-bezier(.2,1.2,.4,1); display: flex; flex-direction: column; }
+@keyframes drawer { from { transform: translateY(24px); opacity: 0; } }
+.m-head { padding: 20px 24px 16px; border-bottom: 2px solid var(--ink); position: relative; }
+.m-eyebrow { display: flex; gap: 10px; align-items: center; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
+.m-head h2 { margin: 10px 0 4px; font-size: clamp(26px, 4vw, 34px); line-height: 1.05; font-weight: 700; padding-right: 40px; }
+.m-hint { margin: 0; font-size: 14px; color: var(--ink-soft); }
+.m-close {
+  position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ink);
+  background: none; cursor: pointer; font-size: 20px; line-height: 1;
+}
+.m-close:hover { background: var(--ink); color: var(--paper); }
+.m-list { list-style: none; margin: 0; padding: 8px 12px; overflow-y: auto; flex: 1; }
+.opt { border-bottom: 1px solid rgba(34,33,31,.15); padding: 12px 10px 12px; display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: 14px; }
+.opt:last-child { border-bottom: 0; }
+.opt-pick {
+  grid-row: span 3; width: 34px; height: 34px; margin-top: 2px; border-radius: 50%; border: 2px solid var(--ink);
+  background: var(--paper); cursor: pointer; font-family: var(--mono); font-size: 13px; font-weight: 500;
+  display: grid; place-items: center;
+}
+.opt-pick[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: var(--paper); }
+.opt-pick[aria-pressed="true"]::after { content: "✓"; font-family: var(--display); font-size: 16px; }
+.opt-pick[aria-pressed="true"] .k { display: none; }
+.opt-name { font-weight: 600; font-size: 19px; line-height: 1.2; cursor: pointer; background: none; border: 0; padding: 0; text-align: left; }
+.opt-name:hover { color: var(--red-dark); }
+.opt-expl { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); max-width: 60ch; }
+.opt-ex-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 6px; }
+.opt-ex-btn {
+  background: none; border: 0; padding: 2px 0; cursor: pointer; color: var(--cobalt);
+  font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  text-decoration: underline; text-underline-offset: 4px;
+}
+.opt-ex { margin: 0; font-family: var(--mono); font-size: 14px; line-height: 1.5; flex-basis: 100%; padding: 8px 12px; background: var(--card); border-left: 3px solid var(--cobalt); }
+.opt.verb .opt-name { text-transform: uppercase; letter-spacing: .1em; }
+.invent { padding: 14px 22px; border-top: 2px solid var(--ink); background: var(--card); }
+.invent label { display: block; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.invent p { margin: 0 0 8px; font-size: 14px; color: var(--ink-soft); }
+.invent-row { display: flex; gap: 8px; }
+.invent input {
+  flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 9px 12px; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper);
+}
+.m-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 22px 18px; justify-content: flex-end; border-top: 1px solid rgba(34,33,31,.15); }
+.m-foot .grow { margin-right: auto; }
+.btn {
+  border: 2px solid var(--ink); background: var(--paper); padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--cobalt); border-color: var(--cobalt); }
+
+/* ---------- Print ---------- */
+#print-root { display: none; }
+@media print {
+  @page { margin: 18mm; }
+  body { background: #fff; padding: 0; }
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block; }
+  #print-root .card { box-shadow: none; border: 1px solid #000; background-image: none; animation: none; max-width: 150mm; margin: 0 auto; }
+  #print-root .card::before { display: none; }
+  #print-root .interp { background: none; color: #000; border: 1px solid #000; max-width: 150mm; }
+  #print-root .interp .sub, #print-root .interp-body p:last-child { color: #333; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .front { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .deck { grid-template-columns: 1fr 1fr; }
+  .dispense-wrap { grid-column: 1 / -1; grid-row: 1; }
+  .howto { justify-self: start; }
+  .colophon { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  body { font-size: 16px; padding-top: 16px; }
+  .front { grid-template-columns: 1fr; }
+  .glass { height: 112px; }
+  .marquee { grid-template-columns: 1fr; }
+  .plate { text-align: left; }
+  .deck { grid-template-columns: 1fr; }
+  .dispense { width: 136px; height: 136px; }
+  .colophon { grid-template-columns: 1fr; }
+  dialog.menu { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; margin: 0; }
+  .m-head { padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
+  .m-foot { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="intro"><span>Ritual Tech · an experimental art project</span><em>Nothing you choose leaves this page</em></p>
+
+  <main class="machine" aria-labelledby="machine-title">
+    <div class="rivets" aria-hidden="true"></div>
+    <header class="marquee">
+      <h1 id="machine-title"><span>Ritual</span><span class="t2">Tech</span></h1>
+      <div class="plate"><b>The Score Dispenser</b>Model 01 · Six windows<br><span>Propositions for encounters<br>with your digital traces</span></div>
+    </header>
+
+    <section class="front" id="front" aria-label="Variable windows"></section>
+
+    <section class="deck" aria-label="Controls">
+      <div class="chance-row">
+        <button class="chance" id="chance" type="button">
+          <span class="slot" aria-hidden="true"><i></i></span>
+          <span><b>Chance</b><small>Set every window by chance. Optional windows may stay shut.</small></span>
+        </button>
+        <button class="clear-all" id="clearAll" type="button">Clear all windows</button>
+      </div>
+      <div class="dispense-wrap">
+        <button class="dispense" id="dispense" type="button" disabled>Dispense<br>Score<span id="dispenseSub">Set 01–03</span></button>
+        <div class="lamps" aria-hidden="true">
+          <div class="lamp" data-lamp="source"><i></i>01</div>
+          <div class="lamp" data-lamp="selection"><i></i>02</div>
+          <div class="lamp" data-lamp="transformation"><i></i>03</div>
+        </div>
+      </div>
+      <ol class="howto">
+        <li>Set windows 01, 02 and 03. Open any window to read its options and examples.</li>
+        <li>Windows 04–06 are optional. Leave them shut if you like.</li>
+        <li>Dispense. Then rewrite, keep, pass on, or ignore the score.</li>
+      </ol>
+    </section>
+    <div class="slotbar" aria-hidden="true"></div>
+  </main>
+
+  <section class="tray empty" id="tray" aria-live="polite" aria-label="Dispensed score"></section>
+
+  <div id="after" hidden>
+    <div class="tools" role="toolbar" aria-label="Score tools">
+      <button class="tool" id="editBtn" type="button" aria-pressed="false">Edit score</button>
+      <button class="tool" id="redrawBtn" type="button">Redraw wording</button>
+      <button class="tool" id="copyBtn" type="button">Copy</button>
+      <button class="tool" id="printBtn" type="button">Print</button>
+      <button class="tool" id="saveBtn" type="button">Save as card</button>
+      <button class="tool" id="shareBtn" type="button" hidden>Share</button>
+      <label class="tool-opt"><input type="checkbox" id="withInterp"> Include interpretation</label>
+    </div>
+    <p class="toast" id="toast" role="status"></p>
+    <p class="share-note">Only the words on the card are copied, printed or shared. Nothing about what you find goes anywhere.</p>
+
+    <section class="interp" id="interp" aria-labelledby="interp-h">
+      <h2 id="interp-h">One possible interpretation</h2>
+      <p class="sub">Optional. One person's way in, not the right one.</p>
+      <div class="interp-body" id="interpBody"></div>
+      <button class="tool" id="anotherBtn" type="button">Another example</button>
+    </section>
+  </div>
+
+  <footer class="colophon">
+    <div>
+      <h3>What this is</h3>
+      <p>Ritual Tech invites you to compose encounters with the digital traces of your life: photographs, messages, notes, calendars, recordings.</p>
+      <p>The trace is everyday material. The score is a proposition. The encounter is the work.</p>
+    </div>
+    <div>
+      <h3>Privacy</h3>
+      <p>The machine never asks for, sees or stores your files. You explore your own material, on your own devices, in your own time.</p>
+      <p>Your window settings are remembered only in this browser.</p>
+    </div>
+    <div>
+      <h3>No outcome required</h3>
+      <p>You don't need to make an artwork, keep anything, or show anyone. Documentation, objects and sharing are possible afterlives, never conditions.</p>
+      <p>The machine offers conditions for attention. It promises no meaning.</p>
+    </div>
+    <p class="motto">The machine dispenses the proposition. <span>You create the encounter.</span></p>
+  </footer>
+</div>
+
+<dialog class="menu" id="menu" aria-labelledby="m-title">
+  <div class="m-head">
+    <div class="m-eyebrow"><span class="win-no" id="m-no">01</span><span id="m-name">Source</span><span id="m-req" class="win-tag" style="margin-left:0">Required</span></div>
+    <h2 id="m-title">Where will you look?</h2>
+    <p class="m-hint" id="m-hint"></p>
+    <button class="m-close" id="m-close" type="button" aria-label="Close menu">×</button>
+  </div>
+  <ul class="m-list" id="m-list"></ul>
+  <form class="invent" id="invent">
+    <label for="invent-input">Invent your own</label>
+    <p id="invent-help"></p>
+    <div class="invent-row">
+      <input id="invent-input" type="text" maxlength="90" autocomplete="off">
+      <button class="btn" type="submit">Set</button>
+    </div>
+  </form>
+  <div class="m-foot">
+    <button class="btn grow" id="m-random" type="button">Choose by chance</button>
+    <button class="btn" id="m-empty" type="button">Leave empty</button>
+    <button class="btn primary" id="m-done" type="button">Done</button>
+  </div>
+</dialog>
+
+<div id="print-root"></div>
+<p class="sr" id="live" aria-live="polite"></p>
+
+<script>
+"use strict";
+const dispenseBtn = document.getElementById("dispense");
+let current = null; // { seed, interpIdx, number, sig, score }
+
+/* =====================================================================
+   CONTENT
+   Tokens in score text: {obj} it/them · {subj} it/they · {Subj} · {poss} its/their
+   {s} verb ending (shows/show) · {was} was/were · {one} {item} {items} {place}
+   ===================================================================== */
+
+const SOURCES = [
+  { id: "photographs", label: "Photographs", expl: "Pictures you've taken or kept: a camera roll, a cloud album, a folder of scans, a box of prints.",
+    examples: ["A blurry picture of a street sign from a trip.", "Screenshots you took to remember something.", "The forty photographs taken on one afternoon at a birthday."],
+    one: "a photograph", item: "photograph", items: "photographs", place: "your photo library", noun: ["A Photograph", "A Picture"],
+    how: "Open your camera roll, a cloud album, or a box of prints." },
+  { id: "messages", label: "Messages", expl: "Text messages, chats, DMs, group threads.",
+    examples: ["A thread with a friend from three phones ago.", "A group chat that was busy for one week and then went quiet.", "A single message that says “here”."],
+    one: "a message", item: "message", items: "messages", place: "your message threads", noun: ["A Message", "A Few Words"],
+    how: "Open a messaging app and scroll back through a thread." },
+  { id: "email", label: "Email", expl: "Inboxes, sent folders, drafts, archived mail.",
+    examples: ["A booking confirmation for a train.", "A draft you never sent.", "A newsletter from a shop that no longer exists."],
+    one: "an email", item: "email", items: "emails", place: "your inbox", noun: ["A Letter", "An Email"],
+    how: "Open your email. The archive or sent folder may hold more than the inbox." },
+  { id: "notes", label: "Notes", expl: "Lists, reminders, half-ideas and notes-to-self, in an app or a notebook.",
+    examples: ["A shopping list with one strange item on it.", "A note that just says “remember the green door”.", "The outline of a project you meant to start."],
+    one: "a note", item: "note", items: "notes", place: "your notes", noun: ["A Note", "A List"],
+    how: "Open a notes app, or wherever you jot things down." },
+  { id: "voice", label: "Voice recordings", short: "Voice recordings", expl: "Voice memos, voicemails, recorded calls, videos with sound.",
+    examples: ["A voicemail from a relative.", "Ten seconds of a melody you hummed so you wouldn't forget it.", "The sound of a room, recorded by accident."],
+    one: "a voice recording", item: "recording", items: "recordings", place: "your voice memos", noun: ["A Voice", "A Recording"],
+    how: "Open your voice memos or voicemail." },
+  { id: "music", label: "Music or playlists", short: "Music & playlists", expl: "Playlists, listening history, saved songs, mixes made for someone.",
+    examples: ["A playlist titled with only a date.", "The song you played most in one particular year.", "A mix someone once made for you."],
+    one: "a song", item: "song", items: "songs", place: "your playlists", noun: ["A Song", "A Tune"],
+    how: "Open your playlists or listening history." },
+  { id: "calendar", label: "Calendar", expl: "Past appointments, plans, reminders, recurring events.",
+    examples: ["A dentist appointment from 2019.", "A weekend blocked out with a single word.", "A weekly class you stopped going to."],
+    one: "a calendar entry", item: "entry", items: "entries", place: "your calendar", noun: ["A Day", "An Appointment"],
+    how: "Open your calendar and go backwards." },
+  { id: "links", label: "Saved links and bookmarks", short: "Saved links", expl: "Bookmarks, saved posts, open tabs, read-later lists, dropped map pins.",
+    examples: ["A recipe saved and never cooked.", "A map pin on a place you meant to visit.", "An article whose title you no longer recognise."],
+    one: "a saved link", item: "link", items: "links", place: "your bookmarks", noun: ["A Saved Link", "A Bookmark"],
+    how: "Open your bookmarks, saved posts, or read-later list." },
+  { id: "documents", label: "Digital documents", short: "Documents", expl: "Files and folders: letters, CVs, forms, essays, spreadsheets, scans.",
+    examples: ["A CV from a job you no longer have.", "A spreadsheet planning a budget for a move.", "A school essay saved as “final_final2”."],
+    one: "a document", item: "document", items: "documents", place: "your files", noun: ["A Document", "A File"],
+    how: "Open a folder of documents on a computer, a drive, or your phone." }
+];
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const SUBJECTS = ["bread","a window","a chair","rain","a bus","shoes","a meal","a doorway","the sky","a table","hands","a dog","a staircase","fruit"];
+const COUNTS = ["three","four","five","seven"];
+
+const SELECTIONS = [
+  { id: "month", label: "Choose a random month", short: "A random month", expl: "Let chance pick a month. Look at whatever happens to be there.",
+    examples: ["The machine says October. You open October 2017.", "Roll a die twice: once for the year, once for the month."],
+    find(src, r) { const M = pick(r, MONTHS);
+      return { line: pick(r, [`Go to ${M}, in any year. Take the first ${src.item} you find.`, `Find ${src.one} from ${M}. Any ${M} will do.`]),
+        how: `The machine chose ${M}. If nothing is there, take the nearest month that holds something.` }; } },
+  { id: "date", label: "Select a particular date", short: "A particular date", expl: "Choose a date, for a reason or for none, and see what that day holds.",
+    examples: ["The 14th of every month you can find.", "The date printed on a coin in your pocket."],
+    find(src, r) { return { line: pick(r, [`Take the date from the nearest coin, ticket or receipt. Find ${src.one} from that day.`, `Choose a date. Find ${src.one} from that day.`]),
+        how: "Any date will do: a birthday, a date printed on something nearby, or simply the 3rd of the month." }; } },
+  { id: "oldest", label: "Find the oldest available item", short: "The oldest item", expl: "Scroll, sort or dig back to the very beginning of what you have.",
+    examples: ["The first photograph your current phone ever took.", "The earliest email in an account you still use."],
+    find(src, r) { return { line: pick(r, [`Find the oldest ${src.item} in ${src.place}.`, `Go back as far as ${src.place} allows. Stop at the oldest ${src.item}.`]),
+        how: "Sort by date, or keep scrolling until there is nothing further back." }; } },
+  { id: "years", label: "Look at the same date across several years", short: "Same date, several years", plural: true,
+    expl: "Pick one day of the year and look at it in as many years as you have.",
+    examples: ["Every 2nd of June since 2015.", "Today's date, last year and the year before."],
+    find(src, r) { return { line: pick(r, [`Choose a day of the year. Find ${src.items} from that day in as many years as you can.`, `Look at today's date in every year you can find in ${src.place}.`]),
+        how: "Some photo apps have an “on this day” view. Elsewhere, search or scroll to the same date, year by year." }; } },
+  { id: "consecutive", label: "Choose several consecutive items", short: "Several in a row", plural: true,
+    expl: "Open anywhere, then take a short run of items exactly as they come.",
+    examples: ["Five messages in a row from the middle of a thread.", "Three photographs taken within a minute of each other."],
+    find(src, r) { const n = pick(r, COUNTS); return { line: `Open ${src.place} anywhere. Take ${n} ${src.items} in a row.`,
+        how: "Don't choose them. Take them in sequence, the dull ones included." }; } },
+  { id: "place", label: "Search by place", short: "By place", expl: "Search for a location (a town, a street, a room) and take what appears.",
+    examples: ["Search photographs by their map location.", "Search messages for the name of a café."],
+    find(src, r) { return { line: pick(r, [`Search ${src.place} for the name of a place. Take the first result.`, `Think of a street you have walked down. Find ${src.one} from there.`]),
+        noun: "A Place", how: "Use a map view, search for a place name, or look for a room you recognise." }; } },
+  { id: "subject", label: "Search by everyday subject", short: "By everyday subject", expl: "Search for something ordinary, like bread, a chair, rain or a bus, and let the ordinary lead. The machine suggests a subject.",
+    examples: ["Search photographs for “window”.", "Search email for the word “umbrella”."],
+    find(src, r) { const S = pick(r, SUBJECTS); const bare = S.replace(/^(a|the) /, "");
+      return { line: `Search ${src.place} for ${S}. Take the first ${src.item} that appears.`, noun: titleCase(S),
+        how: `Type “${bare}” into the search bar, or scroll looking only for ${S}.` }; } },
+  { id: "folder", label: "Explore a rarely visited folder", short: "A rarely visited folder", expl: "Go somewhere you seldom look: an old album, an archive, a forgotten drive.",
+    examples: ["The “Imports” album on a phone.", "A folder called “Misc” on an old laptop.", "The spam folder."],
+    find(src, r) { return { line: pick(r, [`Open a part of ${src.place} you rarely visit. Take ${src.one} from there.`, `Go to the least-visited corner of ${src.place}. Take the first ${src.item} you see.`]),
+        how: "Look for an archive, a subfolder, an old account, or a drive in a drawer." }; } },
+  { id: "adjacent", label: "Follow an adjacent item", short: "The one beside it", expl: "Find anything, then move one step sideways and take its neighbour instead.",
+    examples: ["The photograph taken just after the one you went looking for.", "The message just above the one you remembered."],
+    find(src, r) { return { line: pick(r, [`Find any ${src.item}. Then take the one next to it instead.`, `Find ${src.one}. Move one step along. Keep what is there.`]),
+        how: "The neighbour can be the next in time, the one above, or the one beside it on the screen." }; } }
+];
+
+const TRANSFORMATIONS = [
+  { id: "recreate", label: "Recreate", expl: "Bring something recorded into the present.",
+    examples: ["Find a photograph of an enjoyable meal from years ago. Try making that meal again.", "Find an old playlist and play it, in order, on a long walk.", "Find a calendar entry for a picnic. Hold the picnic again on the same date."],
+    lines: ["Do what {subj} record{s}, again, today.", "Bring {obj} into the present. Make {obj} happen once more."],
+    over: { photographs: ["Make what {subj} show{s} happen again."], music: ["Play {obj} again from the beginning, wherever you are now."],
+      calendar: ["Do what {subj} describe{s} again, at the same hour."], notes: ["Do what {subj} say{s}."],
+      voice: ["Record {obj} again, in your voice as it is now."], messages: ["Write {obj} again from memory, as if for the first time."],
+      links: ["Do what {subj} {was} saved for."], email: ["Write {obj} again without looking."], documents: ["Make {obj} again from a blank page."] },
+    second: ["Use whatever you remember.", "It need not match."],
+    closing: ["What, if anything, returns?", "What is different the second time?"],
+    titles: ["{N}, Again", "{N}, Once More"],
+    canon: { ids: ["photographs"], text: "Search an old photo library for meals. Find something you ate while travelling several years ago. Recreate it using the photograph and whatever you remember." },
+    practice: ["Treat the {item} as a set of instructions. If it records a walk, take the walk. If it records a meal, cook it. If it records a conversation, find a way to have it again.",
+      "Gather what you need from what you have. Don't aim for a perfect copy. Let the present supply what the record can't."] },
+  { id: "continue", label: "Continue", expl: "Pick up something unfinished or set aside.",
+    examples: ["Find an old note containing an abandoned creative idea and take it one step further.", "Find a thread that ended mid-conversation and write the next line. You needn't send it.", "Find a half-finished drawing among your documents and add one mark."],
+    lines: ["Find where {subj} stop{s}. Take one more step.", "Pick {obj} up where {subj} {was} left. Continue."],
+    second: ["Only one step.", "Stop before it is finished."],
+    closing: ["Where does the step lead?", "How far is one step?"],
+    titles: ["{N}, Continued", "{N}, Further"],
+    canon: { ids: ["notes"], text: "Find an old note containing an abandoned idea. Spend an evening taking it exactly one step further, then stop." },
+    practice: ["Look for the place where the {item} breaks off: a sentence, a plan, a list with no end. Add the next part, as you might have then or as you would now.",
+      "Treat the {item} as a draft someone left for you. Pick it up where it was put down."] },
+  { id: "reverse", label: "Reverse", expl: "Invert an action, role, direction, or perspective.",
+    examples: ["Find an old message offering someone advice. Write the advice your present self would offer your past self.", "Play a voice recording backwards and listen for a new word.", "Find a photograph you took of someone. Take one of yourself from where they stood."],
+    lines: ["Turn {obj} around. The speaker becomes the listener; the end becomes the beginning.", "Reverse one thing about {obj}: {poss} direction, {poss} order, or who is speaking."],
+    second: ["Change nothing else."],
+    closing: ["What is on the other side?", "Who is speaking now?"],
+    titles: ["{N}, Reversed", "{N}, Backwards"],
+    canon: { ids: ["messages", "email"], text: "Find an old message in which you gave someone advice. Write the advice your present self would offer your past self." },
+    practice: ["Swap a role. If you were the one recording, be the one recorded. If you sent it, imagine receiving it.",
+      "Run the {item} backwards: read from the end, walk the route in reverse, play it from the last second."] },
+  { id: "reconstruct", label: "Reconstruct", expl: "Piece together something from surviving fragments.",
+    examples: ["Use photographs and calendar entries to reconstruct a day you remember only vaguely.", "Use receipts and texts to map one evening, hour by hour.", "Rebuild a lost recipe from a photograph of the finished dish."],
+    lines: ["Gather whatever survives around {obj}. Piece together what is missing.", "Use {obj} as a fragment. Assemble what surrounded {obj}."],
+    second: ["Leave the gaps visible."],
+    closing: ["What will you leave blank?", "Where does the record run out?"],
+    titles: ["{N}, Reassembled", "{N} from Fragments"],
+    canon: { ids: ["photographs", "calendar"], text: "Use photographs and calendar entries to reconstruct a day you remember only vaguely." },
+    practice: ["Start from the {item} and look for its neighbours: what came just before and after, in {place} and elsewhere. Lay the pieces out in order and see what shape appears.",
+      "Draw a map, a timeline or a floor plan from the fragments. Mark the gaps rather than filling them."] },
+  { id: "translate", label: "Translate", expl: "Express something through a different medium, form, or sense.",
+    examples: ["Listen to an old voice recording and make a drawing responding to its rhythm and texture.", "Turn a photograph into a short piece of music.", "Cook something that tastes the way an old email reads."],
+    lines: ["Carry {obj} into another form: a drawing, a sound, a gesture, a dish.", "Express {obj} in a form {subj} {was} never meant for."],
+    second: ["Keep only what crosses over."],
+    closing: ["What survives the crossing?", "What is lost? What arrives?"],
+    titles: ["{N}, Translated", "{N} in Another Key"],
+    canon: { ids: ["voice", "music"], text: "Listen to an old voice recording and make a drawing that responds to its rhythm and texture, not its words." },
+    practice: ["Choose a form the {item} is not. If it is visual, make a sound. If it is words, make a movement. If it is sound, make a shape.",
+      "Describe the {item} to someone using only colours, or only gestures, or only a recipe."] },
+  { id: "contrast", label: "Contrast", expl: "Place different moments, perspectives, or experiences in relation.",
+    examples: ["Find an old photograph of a place, return to it, and photograph it again.", "Read a note from five years ago beside one written today.", "Play a song from your oldest playlist next to one from your newest."],
+    lines: ["Make a version of {obj} today. Place the two side by side.", "Set {obj} beside something from now."],
+    over: { photographs: ["Return to where {subj} {was} taken. Take {obj} again."] },
+    second: ["Look at both."],
+    closing: ["What lies between them?", "What has moved? What has not?"],
+    titles: ["{N}, Twice", "{N}, Side by Side"],
+    canon: { ids: ["photographs"], text: "Find an old photograph of a place, return to it, and photograph it again from the same spot." },
+    practice: ["Make a new {item} of the same kind today, under similar conditions, and put the two next to each other.",
+      "Hold the {item} up against the present: the same room, the same hour, the same people, or none of them."] },
+  { id: "transmit", label: "Transmit", expl: "Make an experience or practice available for someone else to carry forward.",
+    examples: ["Use a recorded family tradition as the basis for an event score someone else could perform.", "Turn a recipe from an old message into a card a friend could cook from.", "Teach someone the song from a voice memo."],
+    lines: ["Turn {obj} into instructions someone else could follow.", "Make {obj} into something another person could carry forward."],
+    second: ["Leave out anything that is only yours."],
+    closing: ["What will they change?", "What will they carry?"],
+    titles: ["{N}, Passed On", "{N} for Someone Else"],
+    canon: { ids: [], text: "Use a recorded family tradition as the basis for an event score someone else could perform." },
+    practice: ["Write the {item} as a short set of instructions, on a card, for someone who will never see the original.",
+      "Teach the practice the {item} records (a recipe, a route, a song) to someone who can take it further."] }
+];
+
+const INTERACTIONS = [
+  { id: "observe", label: "Observe", expl: "Look closely without explaining. Notice what is actually there.", pre: true,
+    clause: "look at {obj} for longer than seems necessary",
+    examples: ["Count the colours in a photograph.", "Read a message slowly, noticing only the punctuation."] },
+  { id: "remember", label: "Remember", expl: "Recall, privately, what you can. Nothing has to be explained, written or told.", pre: true,
+    clause: "remember what you can, privately",
+    examples: ["Close your eyes and remember the room around the photograph, without telling anyone.", "Recall what you were wearing that day. It doesn't matter if you're wrong."] },
+  { id: "reflect", label: "Reflect", expl: "Think it over: what it shows, what has changed, what you make of it now.",
+    clause: "consider what you make of {obj} now",
+    examples: ["Sit with an old note for five minutes and consider why you wrote it.", "Think about how the person you were then would read it now."] },
+  { id: "story", label: "Tell a story", short: "Tell a story", expl: "Build a story from it: invented, embellished, or true. Unlike remembering, a story is constructed and need not be accurate.",
+    clause: "tell a story that begins with {obj}",
+    examples: ["Tell the story of a photograph as if it belonged to a stranger.", "Begin with “Once” and let a calendar entry become a fable."] },
+  { id: "compare", label: "Compare", expl: "Set two records side by side and notice differences and echoes.",
+    clause: "compare {obj} with another record of the same kind",
+    examples: ["Place two photographs of the same street, taken ten years apart, side by side.", "Compare how you signed off emails then and now."] },
+  { id: "context", label: "Add context", expl: "Add what the record lacks: facts, circumstances, what happened before or after. This is looking things up, not recalling.",
+    clause: "add what the record leaves out, such as the weather, the news, or what came next",
+    examples: ["Look up the weather on the day a photograph was taken.", "Find out what was in the news the week an email was sent."] },
+  { id: "imagine", label: "Imagine", expl: "Picture what isn't there: outside the frame, after the message ended, a different outcome.",
+    clause: "imagine what lies just outside {obj}",
+    examples: ["Imagine what happened one minute after the photograph was taken.", "Imagine the reply that never came."] },
+  { id: "question", label: "Question", expl: "Ask questions of the record, and let them stay open.", pre: true,
+    clause: "ask {obj} one question and leave it open",
+    examples: ["Ask a voice recording: who were you speaking to?", "Write down three questions about an old document and answer none of them."] },
+  { id: "arrange", label: "Arrange or juxtapose", short: "Arrange / juxtapose", expl: "Put things together to see what the combination does: pairing, sequencing, collage.",
+    clause: "set {obj} beside something unrelated and see what the pairing does",
+    examples: ["Arrange five unrelated photographs into a sequence.", "Lay an old shopping list beside a new one."] }
+];
+
+const CONDITIONS = [
+  { id: "noscreen", label: "Without a screen", expl: "Find the item on a device, then put the device away. Continue on paper, aloud, or in your head.", pos: "mid", order: 2,
+    line: () => "Once you have found {obj}, put the screen away.",
+    examples: ["Copy a message out by hand, then switch the phone off.", "Describe a photograph to yourself with the phone in another room."] },
+  { id: "silence", label: "In silence", expl: "Do it without speaking, music or background sound.", excludes: ["aloud"],
+    line: () => "Do all of this in silence.",
+    examples: ["Cook a remembered meal in complete silence.", "Read a long email thread with no sound in the room."] },
+  { id: "aloud", label: "Out loud", expl: "Speak, read or sing it out loud, to yourself or to someone else.", excludes: ["silence"],
+    line: () => "Say each step out loud as you do it.",
+    examples: ["Read an old message aloud, slowly.", "Narrate a calendar entry as if it were a radio broadcast."] },
+  { id: "person", label: "With another person", short: "With another person", expl: "Do it alongside someone, or ask someone to take part.",
+    line: () => "Ask someone to do it with you.",
+    examples: ["Ask a friend to choose the month.", "Recreate a photograph with the person who is in it."] },
+  { id: "memory", label: "From memory first", expl: "Before looking, recall what you think you'll find. Then look.", pos: "mid", order: 1,
+    line: () => "Before you look, describe what you expect to find.",
+    examples: ["Sketch the photograph you expect before you open it.", "Write down what you think an email says, then read it."] },
+  { id: "chance", label: "Using chance", expl: "Let a coin, a die or a shuffle make decisions for you along the way.",
+    line: () => "Let a coin decide any choice along the way.",
+    examples: ["Flip a coin to decide whether to keep going.", "Roll a die to choose which of six items you'll use."] },
+  { id: "days", label: "Over several days", expl: "Stretch it out, a little each day, for several days.",
+    line: (r) => `Spread this across ${pick(r, ["three", "five", "seven"])} days.`,
+    examples: ["Spend a week reconstructing a single day.", "Play one song each morning for five mornings."] },
+  { id: "limit", label: "Within a time limit", expl: "Give it a fixed length of time, and stop when it ends.",
+    line: (r) => `Allow ${pick(r, ["ten minutes", "the length of one song", "twenty minutes", "one hour"])}. Stop when the time is up.`,
+    examples: ["Give yourself ten minutes to continue an old note.", "Look at one photograph for exactly the length of one song."] },
+  { id: "sense", label: "Through a different sense", short: "Through another sense", expl: "Approach it through a sense you wouldn't usually use: touch, taste, smell, hearing.",
+    line: () => "Attend to {obj} through a sense {subj} {was} not made for.",
+    examples: ["Listen to a photograph: what would it sound like?", "Find a smell that matches an old message."] },
+  { id: "repeat", label: "Repeat at an interval", expl: "Do it more than once, with time in between.",
+    line: (r) => `Repeat the whole thing ${pick(r, ["a week later", "in a month", "next year, on the same day"])}. Change nothing on purpose.`,
+    examples: ["Perform the same score every Sunday for a month.", "Do it once now, and once again a year from now."] }
+];
+
+const AFTERLIVES = [
+  { id: "end", label: "Let the encounter end", short: "Let it end", expl: "Nothing follows. When it's over, it's over.", excludes: ["*"],
+    line: "Then let it end.", examples: ["Close the app and go for a walk.", "Do it once and never mention it."] },
+  { id: "private", label: "Keep it private", expl: "It happened, and it stays with you.", excludes: ["give", "invite"],
+    line: "Keep it to yourself.", examples: ["Tell no one.", "Keep any notes somewhere only you will look."] },
+  { id: "return", label: "Return to it later", expl: "Come back to it after some time has passed.",
+    line: "Return to it once more, later.", examples: ["Set a reminder for six months from now.", "Come back to it when the season changes."] },
+  { id: "view", label: "Place something in view", expl: "Leave a small trace somewhere you'll see it: a shelf, a fridge door, a lock screen.",
+    line: "Leave one trace of it where you will see it.", examples: ["Pin the recreated recipe to the fridge.", "Leave the drawing on a windowsill for a week."] },
+  { id: "collection", label: "Add something to a collection", short: "Add to a collection", expl: "Add something to a collection, physical or digital, existing or new.",
+    line: "Add something from it to a collection.", examples: ["Start a folder called “again”.", "Add a leaf from the revisited place to a box of small things."] },
+  { id: "give", label: "Give something to another person", short: "Give something away", expl: "Pass something on to another person: an object, a copy, a story.", excludes: ["private"],
+    line: "Give something from it to another person.", examples: ["Send the friend in the photograph its new version.", "Cook the meal for someone else."] },
+  { id: "invite", label: "Invite another performance", expl: "Pass the score on so someone else can perform it in their own way.", excludes: ["private"],
+    line: "Pass this score to someone else to perform.", examples: ["Write the score on a postcard and post it.", "Read it to a friend and ask them to perform it next week."] },
+  { id: "document", label: "Document the experience", short: "Document it", expl: "Record what happened, if you want to: notes, a photograph, a sound.",
+    line: "Document it, if you wish.", examples: ["Write three lines in a notebook afterwards.", "Take one photograph. No more."] },
+  { id: "future", label: "Leave something for the future", short: "Leave something for later", expl: "Leave something for later, for yourself or whoever comes after.",
+    line: "Leave something for whoever comes later.", examples: ["Write a note to be opened in ten years.", "Hide a copy of the score inside a book you own."] }
+];
+
+const WINDOWS = [
+  { key: "source", no: "01", name: "Source", q: "Where will you look?", required: true, max: 2, options: SOURCES,
+    hint: "Choose one, or two to look in both. Or invent your own.",
+    inventHelp: "Name another place to look.", placeholder: "e.g. a shoebox of receipts, old voicemails" },
+  { key: "selection", no: "02", name: "Selection", q: "How will you find something?", required: true, max: 1, options: SELECTIONS,
+    hint: "Choose one rule. Each works before you know what's there.",
+    inventHelp: "Write a rule for finding something, one you can follow before you know what you'll find.", placeholder: "e.g. the 17th item in the oldest album" },
+  { key: "transformation", no: "03", name: "Transformation", q: "What might you do with what you find?", required: true, max: 1, options: TRANSFORMATIONS, verbs: true,
+    hint: "Choose one verb. These are provocations, not outcomes.",
+    inventHelp: "Write what you might do with it, as an instruction.", placeholder: "e.g. hum it, bury it, read it to a plant" },
+  { key: "interaction", no: "04", name: "Interaction", q: "How might you engage?", required: false, max: 3, options: INTERACTIONS,
+    hint: "Optional. Choose up to three, or none.",
+    inventHelp: "Describe another way to engage.", placeholder: "e.g. draw only the background" },
+  { key: "condition", no: "05", name: "Condition", q: "What might change the experience?", required: false, max: 2, options: CONDITIONS,
+    hint: "Optional. Choose up to two constraints, or none. They change the conditions of attention. They don't make anything more meaningful.",
+    inventHelp: "Name another condition.", placeholder: "e.g. at dawn, standing up, by candlelight" },
+  { key: "afterlife", no: "06", name: "Afterlife", q: "What, if anything, happens afterward?", required: false, max: 2, options: AFTERLIVES,
+    hint: "Genuinely optional. The encounter is complete without any of these. Choose up to two, or none.",
+    inventHelp: "Describe what happens afterward, if anything.", placeholder: "e.g. fold it into a paper boat" }
+];
+const WIN = Object.fromEntries(WINDOWS.map(w => [w.key, w]));
+const byId = (list, id) => list.find(o => o.id === id);
+
+const CLOSERS = [
+  "The resulting experience might resemble the original or be entirely different. Neither outcome is prescribed.",
+  "You might stop halfway. That is also a way of doing it.",
+  "Nothing needs to be made, kept or shown afterwards.",
+  "If it turns into something else along the way, you can follow it.",
+  "It may feel ordinary. Ordinary is allowed."
+];
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function lc1(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+function endP(s) { s = s.trim(); return /[.!?…"”'’)]$/.test(s) ? s : s + "."; }
+function titleCase(s) { const small = ["of","in","for","from","and","to","a","an","the"]; return s.split(" ").map((w, i) => i && small.includes(w) ? w : cap(w)).join(" "); }
+function fill(s, ctx) { return s.replace(/\{(\w+)\}/g, (m, k) => (k in ctx ? ctx[k] : m)); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function newSeed() { return (Math.random() * 2 ** 32) >>> 0; }
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const state = {};      // key -> [{id} | {id:'custom', text}]
+const customText = {}; // key -> last invented text
+WINDOWS.forEach(w => { state[w.key] = []; customText[w.key] = ""; });
+(function restore() {
+  const saved = store.get("rt-state");
+  if (!saved) return;
+  WINDOWS.forEach(w => {
+    const s = saved.state && saved.state[w.key];
+    if (Array.isArray(s)) state[w.key] = s.filter(e => e && (e.id === "custom" ? typeof e.text === "string" && e.text : byId(w.options, e.id))).slice(0, w.max);
+    if (saved.custom && typeof saved.custom[w.key] === "string") customText[w.key] = saved.custom[w.key];
+  });
+})();
+function persist() { store.set("rt-state", { state, custom: customText }); }
+
+function optLabel(w, e, long) {
+  if (e.id === "custom") return "“" + e.text + "”";
+  const o = byId(w.options, e.id);
+  return long ? o.label : (o.short || o.label);
+}
+const requiredDone = () => WINDOWS.filter(w => w.required).every(w => state[w.key].length);
+
+/* =====================================================================
+   WINDOWS: build + reels
+   ===================================================================== */
+const ICONS = {
+  prev: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  next: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  die: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6.8" cy="6.8" r="1.5" fill="currentColor"/><circle cx="13.2" cy="13.2" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="13.2" cy="6.8" r="1.5" fill="currentColor"/><circle cx="6.8" cy="13.2" r="1.5" fill="currentColor"/></svg>'
+};
+
+const front = document.getElementById("front");
+WINDOWS.forEach(w => {
+  const el = document.createElement("article");
+  el.className = "win";
+  el.dataset.key = w.key;
+  el.dataset.required = w.required;
+  el.innerHTML = `
+    <div class="win-head"><span class="win-no">${w.no}</span><span class="win-name">${w.name}</span><span class="win-tag">${w.required ? "Required" : "Optional"}</span></div>
+    <button class="glass" type="button" aria-label="Open the ${w.name} menu"><div class="reel"></div><div class="shutter"><span>${w.required ? "Choose" : "Optional · shut"}</span></div></button>
+    <p class="win-q">${w.q}</p>
+    <div class="ctrl">
+      <button class="knob" type="button" data-act="prev" aria-label="Previous ${w.name} option">${ICONS.prev}</button>
+      <button class="pill" type="button" data-act="menu">Menu</button>
+      <button class="knob" type="button" data-act="rand" aria-label="Choose ${w.name} by chance" title="Chance">${ICONS.die}</button>
+      <button class="knob" type="button" data-act="next" aria-label="Next ${w.name} option">${ICONS.next}</button>
+    </div>`;
+  front.appendChild(el);
+  el.querySelector(".glass").addEventListener("click", () => openMenu(w.key));
+  el.querySelector('[data-act="menu"]').addEventListener("click", () => openMenu(w.key));
+  el.querySelector('[data-act="prev"]').addEventListener("click", () => cycle(w.key, -1));
+  el.querySelector('[data-act="next"]').addEventListener("click", () => cycle(w.key, 1));
+  el.querySelector('[data-act="rand"]').addEventListener("click", () => randomise(w.key, true));
+  el.addEventListener("keydown", ev => {
+    if (ev.target.closest("dialog")) return;
+    if (ev.key === "ArrowLeft") { ev.preventDefault(); cycle(w.key, -1); }
+    if (ev.key === "ArrowRight") { ev.preventDefault(); cycle(w.key, 1); }
+  });
+  renderReel(w.key, 0);
+});
+
+function reelContent(w, entries) {
+  if (!entries.length) return { label: "—", sub: "" };
+  const first = entries[0];
+  const label = entries.map(e => optLabel(w, e)).join(" + ");
+  let sub = first.id === "custom" ? "Your own." : byId(w.options, first.id).expl;
+  if (entries.length > 1) sub = entries.length + " chosen";
+  return { label, sub };
+}
+function makeRi(content, cls) {
+  const d = document.createElement("div");
+  d.className = "ri" + (cls ? " " + cls : "");
+  d.innerHTML = `<span class="ri-label">${esc(content.label)}</span>${content.sub ? `<span class="ri-sub">${esc(content.sub)}</span>` : ""}`;
+  return d;
+}
+function setReelRaw(key, content, dir) {
+  const el = front.querySelector(`[data-key="${key}"]`);
+  const reel = el.querySelector(".reel");
+  const old = reel.querySelector(".ri:not(.out-a):not(.out-b)");
+  if (!old || !dir || reduced) { reel.innerHTML = ""; reel.appendChild(makeRi(content)); return; }
+  const n = makeRi(content, dir > 0 ? "in-b" : "in-a");
+  old.classList.add(dir > 0 ? "out-a" : "out-b");
+  const kill = () => old.remove();
+  old.addEventListener("animationend", kill, { once: true });
+  setTimeout(kill, 600);
+  reel.appendChild(n);
+}
+function renderReel(key, dir) {
+  const w = WIN[key];
+  const el = front.querySelector(`[data-key="${key}"]`);
+  el.classList.toggle("filled", state[key].length > 0);
+  if (state[key].length) setReelRaw(key, reelContent(w, state[key]), dir);
+  updateMachine();
+}
+
+/* the order you cycle through: options, your invention (if any), and "shut" for optional windows */
+function cycleList(w) {
+  const list = w.options.map(o => ({ id: o.id }));
+  if (customText[w.key]) list.push({ id: "custom", text: customText[w.key] });
+  if (!w.required) list.push(null);
+  return list;
+}
+function cycle(key, dir) {
+  const w = WIN[key], list = cycleList(w);
+  const cur = state[key][0];
+  let i = cur ? list.findIndex(e => e && e.id === cur.id) : list.indexOf(null);
+  if (i < 0) i = dir > 0 ? -1 : 0;
+  const nx = list[(i + dir + list.length) % list.length];
+  state[key] = nx ? [nx] : [];
+  renderReel(key, dir);
+  announce(key);
+  changed();
+}
+function randomChoice(w) {
+  const pool = w.options.filter(o => !state[w.key].some(e => e.id === o.id));
+  const k = w.max > 1 ? (Math.random() < 0.6 ? 1 : 2) : 1;
+  const out = [];
+  const bag = pool.slice();
+  while (out.length < k && bag.length) {
+    const o = bag.splice(Math.floor(Math.random() * bag.length), 1)[0];
+    if (out.some(e => conflicts(w, e.id, o.id))) continue;
+    out.push({ id: o.id });
+  }
+  return out;
+}
+function conflicts(w, a, b) {
+  const A = byId(w.options, a), B = byId(w.options, b);
+  const ex = (o, other) => o && o.excludes && (o.excludes.includes("*") || o.excludes.includes(other));
+  return ex(A, b) || ex(B, a);
+}
+/* spin the reel through a few faces, then land */
+function randomise(key, announceIt, delay = 0, choice) {
+  const w = WIN[key];
+  const final = choice || randomChoice(w);
+  return new Promise(resolve => {
+    const el = front.querySelector(`[data-key="${key}"]`);
+    const land = () => {
+      el.classList.remove("spinning");
+      state[key] = final;
+      renderReel(key, 1);
+      if (announceIt) announce(key);
+      changed();
+      resolve();
+    };
+    if (reduced || !final.length) { setTimeout(land, delay); return; }
+    setTimeout(() => {
+      el.classList.add("filled", "spinning");
+      const steps = [50, 60, 70, 85, 105, 130, 165];
+      let t = 0;
+      steps.forEach(ms => {
+        t += ms;
+        setTimeout(() => setReelRaw(key, { label: optLabel(w, { id: pick(Math.random, w.options).id }), sub: "" }, 1), t);
+      });
+      setTimeout(land, t + 200);
+    }, delay);
+  });
+}
+function announce(key) {
+  const w = WIN[key];
+  document.getElementById("live").textContent = state[key].length
+    ? `${w.name}: ${state[key].map(e => optLabel(w, e, true)).join(", ")}`
+    : `${w.name}: empty`;
+}
+
+/* =====================================================================
+   MACHINE STATE
+   ===================================================================== */
+function updateMachine() {
+  ["source", "selection", "transformation"].forEach(k =>
+    document.querySelector(`[data-lamp="${k}"]`).classList.toggle("on", state[k].length > 0));
+  const ok = requiredDone();
+  dispenseBtn.disabled = !ok;
+  const missing = WINDOWS.filter(w => w.required && !state[w.key].length).map(w => w.no);
+  document.getElementById("dispenseSub").textContent = ok ? "Ready" : "Set " + missing.join(" · ");
+  dispenseBtn.setAttribute("aria-label", ok ? "Dispense score" : "Dispense score. Set windows " + missing.join(", ") + " first");
+}
+function changed() {
+  persist();
+  if (current) {
+    const stale = sig() !== current.sig;
+    const s = document.getElementById("stale");
+    if (s) s.hidden = !stale;
+  }
+}
+const sig = () => JSON.stringify(WINDOWS.map(w => state[w.key]));
+
+document.getElementById("chance").addEventListener("click", async (ev) => {
+  const btn = ev.currentTarget;
+  btn.classList.remove("coin"); void btn.offsetWidth; btn.classList.add("coin");
+  const jobs = WINDOWS.map((w, i) => {
+    if (!w.required && Math.random() < 0.45) {
+      return new Promise(res => setTimeout(() => { state[w.key] = []; renderReel(w.key, 0); changed(); res(); }, i * 90));
+    }
+    return randomise(w.key, false, i * 90, (() => { const prev = state[w.key]; state[w.key] = []; const c = randomChoice(w); state[w.key] = prev; return c; })());
+  });
+  await Promise.all(jobs);
+  document.getElementById("live").textContent = "All windows set by chance. " + WINDOWS.map(w => `${w.name}: ${state[w.key].length ? state[w.key].map(e => optLabel(w, e, true)).join(", ") : "empty"}`).join(". ");
+});
+document.getElementById("clearAll").addEventListener("click", () => {
+  WINDOWS.forEach(w => { state[w.key] = []; renderReel(w.key, 0); });
+  document.getElementById("live").textContent = "All windows cleared.";
+  changed();
+});
+
+/* =====================================================================
+   MENU
+   ===================================================================== */
+const menu = document.getElementById("menu");
+let menuKey = null;
+const exIndex = {}; // "key:id" -> shown example index
+
+function openMenu(key) {
+  menuKey = key;
+  const w = WIN[key];
+  document.getElementById("m-no").textContent = w.no;
+  document.getElementById("m-name").textContent = w.name;
+  document.getElementById("m-req").textContent = w.required ? "Required" : "Optional";
+  document.getElementById("m-title").textContent = w.q;
+  document.getElementById("m-hint").textContent = w.hint;
+  document.getElementById("invent-help").textContent = w.inventHelp;
+  const input = document.getElementById("invent-input");
+  input.placeholder = w.placeholder;
+  input.value = customText[key] || "";
+  document.getElementById("m-empty").hidden = w.required;
+  renderMenuList();
+  if (typeof menu.showModal === "function") menu.showModal(); else menu.setAttribute("open", "");
+  menu.querySelector(".m-list").scrollTop = 0;
+}
+function renderMenuList() {
+  const w = WIN[menuKey];
+  const list = document.getElementById("m-list");
+  list.innerHTML = "";
+  w.options.forEach((o, i) => {
+    const sel = state[menuKey].some(e => e.id === o.id);
+    const li = document.createElement("li");
+    li.className = "opt" + (w.verbs ? " verb" : "");
+    const k = String.fromCharCode(65 + i);
+    const exKey = menuKey + ":" + o.id;
+    li.innerHTML = `
+      <button class="opt-pick" type="button" aria-pressed="${sel}" aria-label="${sel ? "Deselect" : "Select"} ${esc(o.label)}"><span class="k">${k}</span></button>
+      <button class="opt-name" type="button" tabindex="-1">${esc(o.label)}</button>
+      <p class="opt-expl">${esc(o.expl)}</p>
+      <div class="opt-ex-row">
+        <button class="opt-ex-btn" type="button" aria-expanded="${exKey in exIndex}">${exKey in exIndex ? (o.examples.length > 1 ? "Another example" : "Hide example") : "Show an example"}</button>
+        ${exKey in exIndex ? `<p class="opt-ex">${esc(o.examples[exIndex[exKey]])}</p>` : ""}
+      </div>`;
+    li.querySelector(".opt-pick").addEventListener("click", () => toggleOpt(o.id));
+    li.querySelector(".opt-name").addEventListener("click", () => toggleOpt(o.id));
+    li.querySelector(".opt-ex-btn").addEventListener("click", () => {
+      if (!(exKey in exIndex)) exIndex[exKey] = 0;
+      else if (o.examples.length > 1) exIndex[exKey] = (exIndex[exKey] + 1) % o.examples.length;
+      else delete exIndex[exKey];
+      renderMenuList();
+      list.querySelectorAll(".opt-ex-btn")[i].focus();
+    });
+    list.appendChild(li);
+  });
+  const ce = state[menuKey].find(e => e.id === "custom");
+  const inv = document.getElementById("invent");
+  inv.querySelector("button").textContent = ce ? "Update" : "Set";
+}
+function toggleOpt(id) {
+  const w = WIN[menuKey];
+  let cur = state[menuKey].slice();
+  const had = cur.some(e => e.id === id);
+  if (had) {
+    if (w.required && cur.length === 1) { /* keep a required window set: re-tap does nothing */ }
+    else cur = cur.filter(e => e.id !== id);
+  } else if (w.max === 1) {
+    cur = [{ id }];
+  } else {
+    cur = cur.filter(e => !conflicts(w, e.id, id));
+    cur.push({ id });
+    while (cur.length > w.max) cur.shift();
+  }
+  state[menuKey] = cur;
+  const pos = [...document.querySelectorAll("#m-list .opt-pick")].findIndex((b, i) => w.options[i].id === id);
+  renderMenuList();
+  document.querySelectorAll("#m-list .opt-pick")[pos].focus();
+  renderReel(menuKey, 1);
+  announce(menuKey);
+  changed();
+}
+document.getElementById("invent").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const w = WIN[menuKey];
+  const text = document.getElementById("invent-input").value.trim().replace(/\s+/g, " ");
+  if (!text) return;
+  customText[menuKey] = text;
+  let cur = state[menuKey].filter(e => e.id !== "custom");
+  if (w.max === 1) cur = [];
+  cur.push({ id: "custom", text });
+  while (cur.length > w.max) cur.shift();
+  state[menuKey] = cur;
+  renderMenuList();
+  renderReel(menuKey, 1);
+  announce(menuKey);
+  changed();
+});
+document.getElementById("m-random").addEventListener("click", () => {
+  const w = WIN[menuKey];
+  const prev = state[menuKey]; state[menuKey] = [];
+  const c = randomChoice(w); state[menuKey] = prev;
+  state[menuKey] = c;
+  renderMenuList();
+  renderReel(menuKey, 1);
+  announce(menuKey);
+  changed();
+});
+document.getElementById("m-empty").addEventListener("click", () => {
+  state[menuKey] = [];
+  renderReel(menuKey, 0);
+  announce(menuKey);
+  changed();
+  closeMenu();
+});
+function closeMenu() { if (menu.open) menu.close(); }
+document.getElementById("m-done").addEventListener("click", closeMenu);
+document.getElementById("m-close").addEventListener("click", closeMenu);
+menu.addEventListener("click", ev => { if (ev.target === menu) closeMenu(); });
+menu.addEventListener("close", () => {
+  const win = front.querySelector(`[data-key="${menuKey}"] .pill`);
+  if (win) win.focus();
+});
+
+/* =====================================================================
+   SCORE COMPOSITION
+   ===================================================================== */
+function sourceCtx() {
+  const list = state.source.map(e => e.id === "custom"
+    ? { id: "custom", one: "something", item: "thing", items: "things", place: e.text, noun: ["Something", "A Trace"], how: `Go to ${e.text}.` }
+    : byId(SOURCES, e.id));
+  if (list.length === 1) return list[0];
+  const [a, b] = list;
+  return { id: "multi", ids: [a.id, b.id], one: `${a.one} or ${b.one}`, item: "item", items: "items",
+    place: `${a.place} and ${b.place}`, noun: a.noun, how: `${a.how} ${b.how}` };
+}
+function joinClauses(cls) {
+  if (cls.length === 1) return cls[0];
+  return cls.slice(0, -1).join(", ") + (cls.length > 2 ? "," : "") + " and " + cls[cls.length - 1];
+}
+
+function compose(seed) {
+  const r = mulberry32(seed);
+  const src = sourceCtx();
+  const selE = state.selection[0];
+  const selO = selE.id === "custom" ? null : byId(SELECTIONS, selE.id);
+  const sel = selO ? selO.find(src, r) : { line: endP(cap(selE.text)), how: "You set the rule. Follow it as literally or as loosely as you like." };
+  const plural = !!(selO && selO.plural);
+  const ctx = Object.assign(plural
+    ? { obj: "them", subj: "they", Subj: "They", poss: "their", s: "", was: "were" }
+    : { obj: "it", subj: "it", Subj: "It", poss: "its", s: "s", was: "was" },
+    { one: src.one, item: src.item, items: src.items, place: src.place });
+  const F = s => fill(s, ctx);
+
+  const tE = state.transformation[0];
+  const T = tE.id === "custom" ? null : byId(TRANSFORMATIONS, tE.id);
+
+  // conditions
+  const conds = state.condition.map(e => e.id === "custom"
+    ? { text: endP(cap(e.text)), pos: "post", order: 9 }
+    : (() => { const c = byId(CONDITIONS, e.id); return { text: F(c.line(r)), pos: c.pos || "post", order: c.order || 5 }; })());
+  const mid = conds.filter(c => c.pos === "mid").sort((a, b) => a.order - b.order).map(c => c.text);
+  const post = conds.filter(c => c.pos === "post").map(c => c.text);
+
+  // interactions
+  const inter = state.interaction.map(e => e.id === "custom"
+    ? { clause: lc1(e.text.replace(/[.!?]+$/, "")), pre: false }
+    : (() => { const o = byId(INTERACTIONS, e.id); return { clause: F(o.clause), pre: !!o.pre, id: o.id }; })());
+  const preI = inter.filter(i => i.pre).map(i => i.clause);
+  const postI = inter.filter(i => !i.pre).map(i => i.clause);
+
+  const lines = [];
+  lines.push({ t: sel.line, k: "find" });
+  if (mid.length) lines.push({ t: mid.join(" "), k: "mid" });
+  if (preI.length) lines.push({ t: preI.length === 1 ? "First, " + preI[0] + "." : `First, ${preI[0]}. Then ${joinClauses(preI.slice(1))}.`, k: "pre" });
+
+  let tline;
+  if (!T) tline = endP(cap(F(tE.text)));
+  else {
+    const pool = (state.source.length === 1 && T.over && T.over[src.id]) || T.lines;
+    tline = F(pick(r, pool));
+  }
+  lines.push({ t: tline, k: "trans" });
+  if (T) lines.push({ t: F(pick(r, T.second)), k: "second", opt: 1 });
+  if (postI.length) {
+    let t = (postI.length === 1 ? pick(r, ["Then ", "Afterwards, ", "As you do, "]) : "Then ") + joinClauses(postI) + ".";
+    if (postI.length === 1 && inter.some(i => i.id === "story")) t += " It need not be true.";
+    lines.push({ t, k: "post" });
+  }
+  if (post.length) lines.push({ t: post.join(" "), k: "cond" });
+
+  const closing = T ? pick(r, T.closing) : pick(r, ["What, if anything, happens?", "What changes?"]);
+  lines.push({ t: closing, k: "closing", opt: 2 });
+
+  const after = state.afterlife.map(e => e.id === "custom" ? endP(cap(e.text)) : byId(AFTERLIVES, e.id).line);
+  if (after.length) lines.push({ t: after.join(" "), k: "after" });
+
+  // keep to 3–6 lines: drop the low-priority second line first, then the closing question, then merge
+  const drop = k => { const i = lines.findIndex(l => l.k === k); if (i >= 0) lines.splice(i, 1); };
+  if (lines.length > 6) drop("second");
+  if (lines.length > 6) drop("closing");
+  if (lines.length > 6) {
+    const pre = lines.findIndex(l => l.k === "pre"), po = lines.findIndex(l => l.k === "post");
+    if (pre >= 0 && po >= 0) { lines[po].t = lines[pre].t + " " + lines[po].t; lines.splice(pre, 1); }
+  }
+  if (lines.length > 6) { const c = lines.findIndex(l => l.k === "cond"), m = lines.findIndex(l => l.k === "mid");
+    if (c >= 0 && m >= 0) { lines[m].t += " " + lines[c].t; lines.splice(c, 1); } }
+  if (lines.length > 4 && after.length && lines.some(l => l.k === "closing") && lines.some(l => l.k === "second")) drop("second");
+
+  // title
+  const N = sel.noun || pick(r, src.noun);
+  const title = fill(T ? pick(r, T.titles) : pick(r, ["{N}, Otherwise", "{N}, Encountered"]), { N });
+
+  // footer: which variables went in
+  const vars = WINDOWS.filter(w => state[w.key].length).map(w => `${w.no} ${state[w.key].map(e => e.id === "custom" ? "own" : (byId(w.options, e.id).short || byId(w.options, e.id).label)).join(" + ")}`);
+
+  return { title, lines: lines.map(l => l.t), vars, src, sel, T, tE, ctx };
+}
+
+function interpretation(score, idx) {
+  const { src, sel, T, tE, ctx } = score;
+  const F = s => fill(s, ctx);
+  const paras = [];
+  paras.push(`${src.how} ${F(sel.how)}`);
+  if (T) {
+    const ids = src.ids || [src.id];
+    const pool = [];
+    if (T.canon && (T.canon.ids.length === 0 || T.canon.ids.some(i => ids.includes(i)))) pool.push(T.canon.text);
+    T.practice.forEach(p => pool.push(F(p.replace(/the \{item\}/g, "the " + ctx.item))));
+    paras.push(pool[idx % pool.length]);
+  } else {
+    paras.push(`You wrote this one: “${tE.text}”. One way in is to try the smallest version of it first, then decide whether to go further.`);
+  }
+  const extras = [];
+  ["interaction", "condition", "afterlife"].forEach(key => {
+    const w = WIN[key];
+    state[key].forEach(e => {
+      if (e.id === "custom") { extras.push(`your own ${w.name.toLowerCase()}: ${e.text}`); return; }
+      const o = byId(w.options, e.id);
+      extras.push(lc1(o.examples[idx % o.examples.length]).replace(/[.]$/, ""));
+    });
+  });
+  if (extras.length) {
+    const parts = extras.slice(0, 3).map((x, i) => (i === 0 ? "Perhaps you " : i === 1 ? "You might also " : "Or ") + x + ".");
+    paras.push(parts.join(" ").replace(/Perhaps you your own/g, "Perhaps you follow your own").replace(/also your own/g, "also follow your own").replace(/Or your own/g, "Or follow your own"));
+  }
+  paras.push(CLOSERS[idx % CLOSERS.length]);
+  return paras;
+}
+
+/* =====================================================================
+   DISPENSE + CARD
+   ===================================================================== */
+const tray = document.getElementById("tray");
+const after = document.getElementById("after");
+
+function nextNumber() {
+  const n = (store.get("rt-count") || 0) + 1;
+  store.set("rt-count", n);
+  return n;
+}
+const pad = n => String(n).padStart(3, "0");
+function dateStamp() {
+  const d = new Date();
+  const R = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+  return `${d.getDate()} · ${R[d.getMonth()]} · ${d.getFullYear()}`;
+}
+
+function renderCard(feed) {
+  const s = current.score;
+  tray.classList.remove("empty");
+  tray.innerHTML = `
+    <article class="card${feed && !reduced ? " feeding" : ""}" id="card">
+      <div class="card-head"><span>Ritual Tech / Score ${pad(current.number)}</span>
+        <svg class="seal" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--cobalt)"/><circle cx="16" cy="16" r="3.6" fill="var(--paper)"/></svg></div>
+      <h2 class="score-title" id="scoreTitle">${esc(s.title)}</h2>
+      <div class="score-body" id="scoreBody">${s.lines.map(l => `<p${/\?$/.test(l) ? ' class="q"' : ""}>${esc(l)}</p>`).join("")}</div>
+      <div class="card-foot"><span class="vars">${esc(s.vars.join(" · "))}</span><span>${dateStamp()}</span></div>
+      <p class="stale" id="stale" hidden>The windows have changed since this score was dispensed. Dispense again for a new one, or keep this.</p>
+    </article>`;
+  after.hidden = false;
+  setEditing(false);
+  renderInterp();
+}
+function renderInterp() {
+  const paras = interpretation(current.score, current.interpIdx);
+  document.getElementById("interpBody").innerHTML = paras.map(p => `<p>${esc(p)}</p>`).join("");
+}
+
+dispenseBtn.addEventListener("click", () => {
+  if (!requiredDone()) return;
+  dispenseBtn.classList.add("pressed");
+  setTimeout(() => dispenseBtn.classList.remove("pressed"), 160);
+  const seed = newSeed();
+  current = { seed, interpIdx: Math.floor(Math.random() * 6), number: nextNumber(), sig: sig(), score: compose(seed) };
+  renderCard(true);
+  document.getElementById("toast").textContent = "";
+  setTimeout(() => tray.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }), reduced ? 0 : 250);
+});
+
+/* edit */
+let editing = false, edited = false;
+const editBtn = document.getElementById("editBtn");
+function setEditing(on) {
+  editing = on;
+  const card = document.getElementById("card");
+  if (!card) return;
+  card.classList.toggle("editing", on);
+  ["scoreTitle", "scoreBody"].forEach(id => {
+    const el = document.getElementById(id);
+    if (on) { el.setAttribute("contenteditable", "true"); el.setAttribute("spellcheck", "true"); }
+    else { el.removeAttribute("contenteditable"); }
+  });
+  editBtn.classList.toggle("on", on);
+  editBtn.setAttribute("aria-pressed", on);
+  editBtn.textContent = on ? "Done editing" : "Edit score";
+  if (on) { document.getElementById("scoreBody").focus(); toast("Click any line to rewrite it. Press Enter for a new line."); }
+}
+editBtn.addEventListener("click", () => { setEditing(!editing); if (!editing) toast(edited ? "Your version is on the card." : ""); });
+tray.addEventListener("input", () => { edited = true; });
+tray.addEventListener("keydown", ev => { if (ev.target.id === "scoreTitle" && ev.key === "Enter") { ev.preventDefault(); document.getElementById("scoreBody").focus(); } });
+
+let redrawArmed = false;
+document.getElementById("redrawBtn").addEventListener("click", ev => {
+  if (!current) return;
+  if (edited && !redrawArmed) { redrawArmed = true; ev.currentTarget.textContent = "Replace my edits?"; toast("Redrawing replaces your edits. Press again to confirm."); return; }
+  redrawArmed = false; ev.currentTarget.textContent = "Redraw wording";
+  current.seed = newSeed(); current.sig = sig();
+  current.score = compose(current.seed);
+  edited = false;
+  renderCard(false);
+  toast("New wording, same windows.");
+});
+
+document.getElementById("anotherBtn").addEventListener("click", () => {
+  if (!current) return;
+  current.interpIdx++;
+  renderInterp();
+});
+
+/* read what's on the card (including edits) */
+function readCard() {
+  const title = document.getElementById("scoreTitle").innerText.trim();
+  const body = document.getElementById("scoreBody").innerText.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const interp = [...document.querySelectorAll("#interpBody p")].map(p => p.textContent);
+  return { title, body, interp, head: `RITUAL TECH / SCORE ${pad(current.number)}` };
+}
+function cardText(withI) {
+  const c = readCard();
+  let t = `${c.head}\n\n${c.title}\n\n${c.body.join("\n\n")}`;
+  if (withI) t += `\n\n— One possible interpretation —\n\n${c.interp.join("\n\n")}`;
+  return t + "\n";
+}
+const withInterp = () => document.getElementById("withInterp").checked;
+
+let toastT;
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; clearTimeout(toastT); if (msg) toastT = setTimeout(() => (t.textContent = ""), 5000); }
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const text = cardText(withInterp());
+  try { await navigator.clipboard.writeText(text); toast("Copied. Paste it anywhere."); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (_) {}
+    ta.remove();
+    toast(ok ? "Copied. Paste it anywhere." : "Copying was blocked here. Select the card text and copy it by hand.");
+  }
+});
+
+document.getElementById("printBtn").addEventListener("click", () => {
+  const root = document.getElementById("print-root");
+  const card = document.getElementById("card").cloneNode(true);
+  card.classList.remove("feeding", "editing");
+  card.querySelectorAll("[contenteditable]").forEach(e => e.removeAttribute("contenteditable"));
+  const st = card.querySelector("#stale"); if (st) st.remove();
+  card.removeAttribute("id"); card.querySelectorAll("[id]").forEach(e => e.removeAttribute("id"));
+  root.innerHTML = "";
+  root.appendChild(card);
+  if (withInterp()) { const i = document.getElementById("interp").cloneNode(true); i.querySelector("button").remove(); i.querySelectorAll("[id]").forEach(e => e.removeAttribute("id")); i.removeAttribute("id"); root.appendChild(i); }
+  window.print();
+});
+
+if (navigator.share) {
+  const sb = document.getElementById("shareBtn");
+  sb.hidden = false;
+  sb.addEventListener("click", async () => {
+    const c = readCard();
+    try { await navigator.share({ title: `Ritual Tech: ${c.title}`, text: cardText(withInterp()) }); }
+    catch (e) { /* cancelled */ }
+  });
+}
+
+/* save as an image card, drawn on canvas */
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  try { await document.fonts.ready; } catch (e) {}
+  const c = readCard();
+  const W = 1200, P = 110, inner = W - P * 2;
+  const cv = document.createElement("canvas");
+  const g = cv.getContext("2d");
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  const fDisp = (wt, sz) => `${wt} ${sz}px Jost, Futura, "Century Gothic", Arial, sans-serif`;
+  const fMono = (st, sz) => `${st} ${sz}px "IBM Plex Mono", Menlo, Consolas, monospace`;
+  function wrap(text, font, max) {
+    g.font = font;
+    const words = text.split(/\s+/); const out = []; let line = "";
+    words.forEach(w => { const t = line ? line + " " + w : w; if (g.measureText(t).width > max && line) { out.push(line); line = w; } else line = t; });
+    if (line) out.push(line);
+    return out;
+  }
+  const titleL = wrap(c.title, fDisp(700, 76), inner);
+  const bodyL = c.body.map((b, i) => wrap(b, fMono(/\?$/.test(b) ? "italic 400" : "400", 34), inner));
+  const interpL = withInterp() ? c.interp.map(p => wrap(p, fDisp(400, 28), inner)) : [];
+  let H = P + 50 + 40 + titleL.length * 84 + 44 + bodyL.reduce((a, l) => a + l.length * 52 + 30, 0) + 90 + P / 2;
+  if (interpL.length) H += 80 + interpL.reduce((a, l) => a + l.length * 40 + 22, 0) + 20;
+  H = Math.max(H, 1500);
+  const S = 1; cv.width = W * S; cv.height = H * S;
+  g.fillStyle = col("--paper"); g.fillRect(0, 0, W, H);
+  g.fillStyle = col("--ink");
+  let y = P;
+  g.font = fDisp(700, 24); g.textBaseline = "alphabetic";
+  if (g.letterSpacing !== undefined) g.letterSpacing = "4px";
+  g.fillText(c.head, P, y + 24);
+  if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
+  g.fillStyle = col("--cobalt"); g.beginPath(); g.arc(W - P - 22, y + 16, 22, 0, Math.PI * 2); g.fill();
+  g.fillStyle = col("--paper"); g.beginPath(); g.arc(W - P - 22, y + 16, 5.5, 0, Math.PI * 2); g.fill();
+  y += 50; g.fillStyle = col("--ink"); g.fillRect(P, y, inner, 4);
+  y += 40;
+  g.font = fDisp(700, 76);
+  titleL.forEach(l => { y += 78; g.fillText(l, P, y); });
+  y += 50;
+  bodyL.forEach((lines, i) => {
+    g.font = fMono(/\?$/.test(c.body[i]) ? "italic 400" : "400", 34);
+    lines.forEach(l => { y += 46; g.fillText(l, P, y); });
+    y += 30;
+  });
+  if (interpL.length) {
+    y += 30; g.fillStyle = col("--cobalt"); g.fillRect(P, y, inner, 3); y += 50;
+    g.font = fDisp(700, 22); if (g.letterSpacing !== undefined) g.letterSpacing = "4px";
+    g.fillText("ONE POSSIBLE INTERPRETATION", P, y); if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
+    y += 14; g.fillStyle = col("--ink");
+    interpL.forEach(lines => { g.font = fDisp(400, 28); lines.forEach(l => { y += 40; g.fillText(l, P, y); }); y += 22; });
+  }
+  g.fillStyle = col("--ink-soft"); g.font = fDisp(600, 20);
+  if (g.letterSpacing !== undefined) g.letterSpacing = "3px";
+  g.fillText(dateStamp().toUpperCase(), P, H - P / 2);
+  const brand = "RITUAL TECH"; g.fillText(brand, W - P - g.measureText(brand).width, H - P / 2);
+  cv.toBlob(blob => {
+    if (!blob) { toast("This browser couldn't make the image."); return; }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `ritual-tech-score-${pad(current.number)}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Card saved as an image.");
+  }, "image/png");
+});
+
+/* first run: open on a working example so the machine shows what it does */
+(function firstRun() {
+  const hasAny = WINDOWS.some(w => state[w.key].length);
+  if (!hasAny && !store.get("rt-seen")) {
+    state.source = [{ id: "photographs" }];
+    state.selection = [{ id: "subject" }];
+    state.transformation = [{ id: "recreate" }];
+    WINDOWS.forEach(w => renderReel(w.key, 0));
+    store.set("rt-seen", true);
+    persist();
+  }
+  updateMachine();
+})();
+</script>
+</body>
+</html>
